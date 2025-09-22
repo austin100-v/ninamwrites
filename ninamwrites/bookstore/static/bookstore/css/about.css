@@ -1,0 +1,166 @@
+header {
+    position: relative;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    overflow: hidden; /* ensures pseudo-elements don’t leak out */
+    background-color: #9a8174; /* fallback color */
+}
+
+/* background image */
+header::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url('../images/header-about-bg.jpg') no-repeat center center;
+    background-size: cover;
+    transition: transform 0.5s ease-in-out;
+    z-index: -2; /* keep it behind everything */
+}
+
+/* dark overlay */
+header::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #3b3b3b57; /* black with 40% transparency */
+    z-index: -1; /* sits between background and text */
+}
+
+/* zoom effect */
+header:hover::before {
+    transform: scale(1.1);
+}
+.header-content {
+    font-family: 'Playfair Display', serif;
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+}
+.header-content h1 {
+    font-size: 2.5em;
+    margin: 0;
+}
+.header-content p {
+    font-size: 1.2em;
+    margin: 10px 0 0;
+}
+.about {
+    background-color: #FFFFFF;
+    padding: 40px 20px;
+    max-width: 800px;
+}
+.about-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+.about-content h1 {
+    font-size: 2em;
+    margin-bottom: 10px;
+    color: #9a8174;
+}
+.about-content p {
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: #3b3b3b;
+}
+.about-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px #9a817461;    
+}
+.my-story {
+    margin-top: 30px;
+}
+.my-story h2 {
+    font-size: 1.8em;
+    color: #9a8174;
+    margin-bottom: 10px;
+}
+.my-story p {
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: #3b3b3b;
+}
+.call-to-action {
+    background-color: #3b3b3b;
+    color: #FFFFFF;  
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;  
+}
+.call-to-action h2 {
+    font-size: 2rem;
+}
+.call-to-action p {
+    font-size: 1.2rem;
+}
+.cta-buttons {
+    display: flex;
+    gap: 20px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+}
+#cta-shop {
+    background-color: #9a8174;
+    color: #000000;
+    border: none;
+    padding: 10px 20px;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    border-radius: 5px;
+}
+#cta-shop:hover {
+    transform: scale(1.05);
+}
+#learn {
+    background: none;
+    color: #FFFFFF;
+    border: 1px solid #FFFFFF;
+    padding: 10px 20px;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    border-radius: 5px;
+}
+#learn:hover {
+    transform: scale(1.05);
+}
+
+/* responsive */
+@media (max-width: 600px) {
+    .header-content {
+        flex-direction: column;
+    }
+    .header-content h1 {
+        font-size: 1.8rem;
+    }
+    .header-content p {
+        font-size: 0.9rem;
+    }
+    .about-content {
+        flex-direction: column;
+    }
+    .about-image img {
+        width: 150px;
+    }
+    .my-story h2 {
+        font-size: 1.5rem;
+    }
+    .my-story p {
+        font-size: 0.9rem;
+    }
+    .cta-buttons {
+        flex-direction: column;
+        align-items: start;
+    }
+
+}
+
+

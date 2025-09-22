@@ -1,0 +1,308 @@
+/* Reset margins and paddings */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.logo h3, .footer-logo h3 {
+    font-family: 'Playfair Display', serif;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+.hamburger {
+    display: none; /* Hidden by default, shown on small screens */
+    background: none;
+    border: none;
+    color: #FFFFFF;
+    font-size: 24px;
+    cursor: pointer;
+}
+/* Navigation bar */
+nav {
+    background-color: #3B3B3B;
+    color: #FFFFFF;
+    padding: 15px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-links ul {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    list-style: none;
+}
+
+.nav-links li a,
+#shop,
+#join,
+#logout {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #FFFFFF;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* Hover effect for links and buttons */
+.nav-links li a:hover,
+#shop:hover,
+#join:hover,
+#logout:hover {
+    text-decoration: underline;
+}
+
+/* Active link */
+.nav-links li a.active {
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+/* Optional: style welcome text */
+.welcome-text {
+    font-size: 15px;
+    font-weight: 500;
+    margin-right: 10px;
+    color: #FFFFFF;
+}
+
+
+
+/* Buttons */
+.cart-btn {
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+
+
+/* Footer */
+/* Footer */
+footer {
+    background-color: #3B3B3B;
+    padding: 40px 20px;
+    color: #FFFFFF;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: auto;
+}
+
+/* Left: Logo + Newsletter */
+.footer-logo-newsletter {
+    flex: 1;
+    min-width: 250px;
+}
+
+.footer-subscribe {
+    margin-top: 15px;
+}
+
+.newsletter-form {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.newsletter-form input {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    flex: 1;
+    min-width: 180px;
+}
+
+.newsletter-form button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #9a8174;
+    color: #FFFFFF;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.newsletter-form button:hover {
+    background-color: #050206;
+    transform: scale(1.05);
+}
+
+/* Center: Links */
+.footer-links, .footer-social {
+    flex: 1;
+    min-width: 200px;
+}
+
+.footer-links h4,
+.footer-social h4 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #FFFFFF;
+    display: inline-block;
+    padding-bottom: 5px;
+    color: #9a8174;
+}
+
+.footer-links ul,
+.footer-social ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li,
+.footer-social li {
+    margin: 8px 0;
+}
+
+.footer-links a,
+.footer-social a {
+    color: #FFFFFF;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-links a:hover,
+.footer-social a:hover {
+    color: #9a8174;
+}
+
+/* Social icons in a row */
+.footer-social ul {
+    display: flex;
+    gap: 25px;
+}
+
+/* Footer bottom */
+.footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.2);
+    margin-top: 30px;
+    padding-top: 15px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.legal-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.legal-links a {
+    color: #FFFFFF;
+    font-size: 13px;
+}
+
+.legal-links a:hover {
+    color: #9a8174;
+}
+
+.messages {
+  text-align: center;
+  margin: 15px 0;
+}
+.message {
+  padding: 8px;
+  border-radius: 5px;
+}
+.message.success { background: #00ff3c; color: #ffffff; }
+.message.info { background: #cce5ff; color: #004085; }
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .newsletter-form {
+        justify-content: center;
+    }
+
+    .footer-links h4,
+    .footer-social h4 {
+        font-size: 16px;
+    }
+    .footer-links, 
+    .footer-social {
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 600px) {
+    nav {
+        flex-direction: column;
+        align-items: start;
+        gap: 10px;
+    }
+    .hamburger {
+        display: block; /* Show hamburger on small screens */
+    }
+    .nav-links ul {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .footer-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+    .footer-logo-newsletter, .footer-links, .footer-social {
+        align-items: center;
+        text-align: center;
+    }
+    .newsletter-form form {
+        flex-direction: column;
+    }
+    .newsletter-form form input, .newsletter-form form button {
+        width: 100%;
+        margin: 5px 0;
+    }
+    .legal-links {
+        flex-direction: column;
+        gap: 10px;  
+    
+}
+}
+@media (max-width: 768px) {
+    nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .nav-links ul {
+        flex-direction: column;
+        gap: 15px;
+        display: none; /* hide by default */
+    }
+    .nav-links ul.active {
+        display: flex; /* toggle on hamburger click */
+    }
+}

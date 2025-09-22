@@ -1,0 +1,83 @@
+{% extends "ninamwrites_admin/base.html" %}
+{% block extrahead %}
+<style>
+    h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1rem, calc(1vw + 1rem), 2rem);
+        margin-bottom: 20px;
+    }
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: clamp(300px, calc(100vw - 40px), 600px);
+        margin: 0 auto;
+    }
+    label {
+        font-weight: bold;
+    }
+    input {
+        padding: 10px;
+    }
+    textarea {
+        padding: 10px;
+    }
+    button {
+        padding: 10px;
+        background-color: #1e3a8a;
+        color: white;
+        border: none;
+        border-radius: 5px;
+    }
+    button:hover {
+        background-color: #2563eb;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<h1>Send Newsletter</h1>
+<form method="post" action="{% url 'ninamwrites_admin:send_newsletter' %}" id="send-newsletter-form">
+    {% csrf_token %}
+    <label for="subject">Subject:</label>
+    <input type="text" id="subject" name="subject" required>
+    <label for="message">Message:</label>
+    <textarea id="message" name="message" required></textarea>
+    <button type="submit">Send Newsletter</button>
+</form>
+{% endblock %}
+{% block extrajs %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("send-newsletter-form");
+    if (form) {
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const csrfToken = form.querySelector("[name=csrfmiddlewaretoken]").value;
+
+            try {
+                const response = await fetch(form.action, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.success);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Something went wrong. Please try again.");
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

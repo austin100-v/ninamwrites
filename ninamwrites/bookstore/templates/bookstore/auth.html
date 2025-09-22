@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Auth Page</title>
+    <link rel="stylesheet" href="{% static 'bookstore/css/auth.css' %}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+    <script>
+        function showTab(tabName) {
+            document.getElementById("login-form").style.display = "none";
+            document.getElementById("register-form").style.display = "none";
+            document.getElementById(tabName).style.display = "block";
+        }
+    </script>
+</head>
+
+<body>
+    <div class="auth-container">
+        <h2>Authentication</h2>
+
+        <!-- Flash messages -->
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <!-- Tab buttons -->
+        <div class="tab-buttons">
+            <button type="button" onclick="showTab('login-form')">Login</button>
+            <button type="button" onclick="showTab('register-form')">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" method="POST" action="{% url 'bookstore:auth' %}">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="login">
+
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" name="password" required>
+            </div>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <form id="register-form" method="POST" action="{% url 'bookstore:auth' %}" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="register">
+
+            <div class="form-group">
+                <label>Name:</label>
+                <input type="text" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" name="password" required>
+            </div>
+
+            <div class="form-group">
+                <label>Confirm Password:</label>
+                <input type="password" name="password_confirm" required>
+            </div>
+
+            <button type="submit">Register</button>
+        </form>
+
+    </div>
+
+    <script>
+        // Show login form by default
+        showTab('login-form');
+    </script>
+</body>
+
+</html>

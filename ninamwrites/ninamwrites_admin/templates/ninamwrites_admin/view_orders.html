@@ -1,0 +1,69 @@
+{% extends "ninamwrites_admin/base.html" %}
+{% block extrahead %}
+<style>
+    h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1rem, calc(1vw + 1rem), 2rem);
+        margin-bottom: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    thead, tbody, td {
+        padding: 10px;
+        text-align: left;
+    }
+    thead {
+        background-color: #1e3a8a;
+        color: white;
+    }
+    tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    tbody tr:hover {
+        background-color: #ddd;
+    }
+    a {
+        color: #1e3a8a;
+    }
+    a:hover {
+        color: #2563eb;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>View Orders</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Total Price</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.id }}</td>
+            <td>{{ order.customer.full_name }}</td>
+            <td>{{ order.total_price }}</td>
+            <td>{{ order.status }}</td>
+            <td><a href="{% url 'ninamwrites_admin:view_order' order.id %}">View</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'ninamwrites_admin:view_orders' %}">View Orders</a>
+{% endblock %}
+{% block extrajs %}
+<script>
+    $(document).ready(function() {
+        $('.view-order').click(function() {
+            window.location.href = $(this).data('url');
+        });
+    });
+</script>
+{% endblock %}

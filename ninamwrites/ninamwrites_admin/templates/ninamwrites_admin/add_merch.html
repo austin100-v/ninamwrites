@@ -1,0 +1,157 @@
+{% extends "ninamwrites_admin/base.html" %}
+{% block extrahead %}
+<style>
+    .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .tab-button {
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .tab-button:hover {
+        background-color: #ccc;
+    }
+    .tab-button.active {
+        background-color: #000;
+        color: #fff;
+    }
+    .tab-content {
+        display: none;
+    }
+    .tab-content.active {
+        display: block;
+    }
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: clamp(300px, calc(100vw - 40px), 600px);
+        margin: 0 auto;
+    }
+    label {
+        font-weight: bold;
+    }
+    input {
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    button {
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="tabs">
+    <button class="tab-button" data-tab="manage-merch">Manage Merchandise</button>
+    <button class="tab-button" data-tab="add-merch">Add Merchandise</button>
+</div>
+<div class="tab-content" id="manage-merch">
+    <h1>Manage Merchandise</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Has Sizes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for merch in merch %}
+            <tr>
+                <td>{{ merch.title }}</td>
+                <td>{{ merch.category }}</td>
+                <td>{{ merch.price }}</td>
+                <td>{{ merch.has_sizes }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- add merch -->
+<div class="tab-content" id="add-merch">
+    <h1>Add Merchandise</h1>
+    <form method="post" id="add-merch-form">
+        {% csrf_token %}
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+        <label for="description">Description:</label>
+        <input type="text" id="description" name="description" required>
+        <label for="price">Price:</label>
+        <input type="number" id="price" name="price" required>
+        <label for="category">Category:</label>
+        <select name="category" id="category" required>
+            <option value="clothing">Clothing</option>
+            <option value="accessories">Accessories</option>
+        </select>
+        <label for="has_sizes">Has Sizes:</label>
+        <input type="checkbox" id="has_sizes" name="has_sizes" required>
+        <label for="image">Image:</label>
+        <input type="file" id="image" name="image" required>
+        {{ form.as_p }}
+        <button type="submit">Add Merchandise</button>
+    </form>
+</div>
+{% endblock %}
+{% block extrajs %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const tabs = document.querySelectorAll(".tab-button");
+        const tabContents = document.querySelectorAll(".tab-content");
+
+        // Tab toggle
+        tabs.forEach(tab => {
+            tab.addEventListener("click", function () {
+                tabs.forEach(t => t.classList.remove("active"));
+                tabContents.forEach(c => c.classList.remove("active"));
+
+                tab.classList.add("active");
+                document.getElementById(tab.dataset.tab).classList.add("active");
+            });
+        });
+
+        // Add Book Form AJAX
+        const addMerchForm = document.getElementById("add-merch-form");
+        addMerchForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(addMerchForm);
+
+            fetch("{% url 'ninamwrites_admin:add_merch' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Append new merch to Manage Merch list
+                        const merchList = document.getElementById("merch-list");
+                        const newMerch = document.createElement("p");
+                        newMerch.textContent = `${data.merch.title} - ${data.merch.category}`;
+                        merchList.appendChild(newMerch);
+
+                        // Switch back to Manage Merch tab
+                        document.querySelector('[data-tab="manage"]').click();
+
+                        // Reset form
+                        addMerchForm.reset();
+                    } else {
+                        alert("Error: " + data.error);
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "ninamwrites_admin/base.html" %}
+
+{% block extrahead %}
+<style>
+    h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1rem, calc(1vw + 1rem), 2rem);
+        margin-bottom: 20px;
+    }
+    table {
+        width: clamp(300px, calc(100vw - 40px), 600px);
+        border-collapse: collapse;
+    }
+    thead, tbody, td {
+        padding: 10px;
+        text-align: left;
+    }
+    thead {
+        background-color: #1e3a8a;
+        color: white;
+    }
+    tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    tbody tr:hover {
+        background-color: #ddd;
+    }
+    a {
+        color: #1e3a8a;
+    }
+    a:hover {
+        color: #2563eb;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>View Testimonials</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Author</th>
+            <th>Content</th>
+            <th>Rating</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for testimonial in testimonials %}
+        <tr>
+            <td>{{ testimonial.author }}</td>
+            <td>{{ testimonial.content }}</td>
+            <td>{{ testimonial.rating }}</td>
+            <td>{{ testimonial.date }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
+
+{% block extrajs %}
+<script>
+    
+</script>
+{% endblock %}

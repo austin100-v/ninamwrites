@@ -1,0 +1,117 @@
+/* Reset and base */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: #fffdcc; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Container */
+.auth-container {
+    background: #FFFFFF;
+    padding: 30px;
+    border-radius: 12px;
+    width: auto;
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+/* Heading */
+.auth-container h2 {
+    margin-bottom: 20px;
+    color: #9a8174;
+}
+
+/* Flash messages */
+ul {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 15px;
+}
+ul li {
+    background: #16b102;
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 6px;
+    color: #FFFFFF;
+    font-size: 14px;
+}
+
+/* Tabs (Login/Register buttons) */
+.tab-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+.tab-buttons button {
+    flex: 1;
+    padding: 10px;
+    margin: 0 5px;
+    background: #9a8174;
+    border: none;
+    border-radius: 8px;
+    color: #050206;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+}
+.tab-buttons button:hover {
+    background: #050206;
+    color: #FFFFFF;
+}
+
+/* Forms */
+/* Forms */
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* stretch to full width */
+}
+
+/* Form row wrapper */
+.form-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    flex: 1;
+    font-size: 14px;
+    margin-right: 10px;
+    text-align: left;
+    color: #3b3b3b;
+    font-size: 1.1rem;
+}
+
+.form-group input {
+    flex: 2;
+    padding: 10px;
+    border: 1px solid #9a8174;
+    border-radius: 8px;
+    outline: none;
+    background: #FFFFFF;
+    color: #050206;
+}
+
+/* Keep button centered */
+form button {
+    align-self: center;
+    padding: 12px 24px;
+    background: #9a8174;
+    border: none;
+    border-radius: 8px;
+    color: #050206;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+form button:hover {
+    background: #050206;
+    color: #FFFFFF;
+}

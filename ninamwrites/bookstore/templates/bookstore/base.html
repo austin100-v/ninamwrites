@@ -1,0 +1,157 @@
+{% load static %}
+{% load i18n %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Nina Writes{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'bookstore/css/styles.css' %}">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <nav>
+        <div class="logo">
+            <h3>NINA M. WRITES</h3>
+        </div>
+
+        <div class="nav-links">
+            <!-- hamburger button -->
+            <button class="hamburger" id="hamburger">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <!-- navigation menu -->
+            <ul>
+                <li><a href="{% url 'bookstore:index' %}">Home</a></li>
+                <li><a href="{% url 'bookstore:about' %}">About</a></li>
+                <li><a href="{% url 'bookstore:contact' %}">Contact</a></li>
+                <li><a href="{% url 'bookstore:merchandise' %}">Merch</a></li>
+                <li><button id="shop" onclick="window.location.href='{% url 'bookstore:books' %}'">Shop</button></li>
+
+                <!-- Show Join if NOT logged in, Logout if logged in -->
+                {% if user.is_authenticated %}
+                <li>
+                    <span class="welcome-text">Hi, {{ user.username }} 👋</span>
+                </li>
+                <li>
+                    <button id="logout" onclick="window.location.href='{% url 'bookstore:logout' %}'">Logout</button>
+                </li>
+                {% else %}
+                <li>
+                    <button id="join" onclick="window.location.href='{% url 'bookstore:auth' %}'">Join</button>
+                </li>
+                {% endif %}
+
+                <li>
+                    <a href="{% url 'bookstore:cart' %}" class="cart-btn">
+                        <i class="fas fa-shopping-cart"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+
+    {% block content %}{% endblock %}
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <p class="message {{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo-newsletter">
+                <div class="footer-logo">
+                    <h3>NINA M. WRITES</h3>
+                </div>
+                <div class="footer-subscribe">
+                    <p>Subscribe to our newsletter for the latest updates on new releases</p>
+                    <div class="newsletter-form">
+                        <form method="post" action="{% url 'bookstore:subscribe' %}">
+                            {% csrf_token %}
+                            <input type="email" name="email" placeholder="Enter your email" required>
+                            <button type="submit" id="subscribe">Subscribe</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="{% url 'bookstore:index' %}">Home</a></li>
+                    <li><a href="{% url 'bookstore:about' %}">About Us</a></li>
+                    <li><a href="{% url 'bookstore:merchandise' %}">Merch</a></li>
+                    <li><a href="{% url 'bookstore:contact' %}">Contact</a></li>
+                    <li><a href="{% url 'bookstore:cart' %}">Cart</a></li>
+                </ul>
+            </div>
+            <div class="footer-social">
+                <h4>Socials</h4>
+                <ul>
+                    <li><a href="#"><i class="fab fa-facebook-f"></i></a></li>
+                    <li><a href="#"><i class="fab fa-twitter"></i></a></li>
+                    <li><a href="#"><i class="fab fa-instagram"></i></a></li>
+                    <li><a href="#"><i class="fab fa-snapchat"></i></a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom" role="contentinfo">
+            <p>&copy; 2025 Nina M. Writes. All rights reserved.</p>
+            <p>Designed by <a href="#">Austine Irungu</a>"</p>
+            <div class="legal-links">
+                <a href="{% url 'bookstore:privacy_policy' %}">Privacy Policy</a>
+                <span>|</span>
+                <a href="{% url 'bookstore:terms_of_service' %}">Terms of Service</a>
+                <span>|</span>
+                <a href="{% url 'bookstore:cookie_policy' %}">Cookie Policy</a>
+            </div>
+        </div>
+
+    </footer>
+
+
+
+    {% block extra_js %}
+    <script>
+        // Hamburger menu toggle
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.querySelector('.nav-links ul');
+
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        // CSRF token setup for AJAX
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== "") {
+                const cookies = document.cookie.split(";");
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+    </script>
+    {% endblock %}
+</body>
+
+</html>

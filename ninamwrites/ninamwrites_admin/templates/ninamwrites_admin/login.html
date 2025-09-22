@@ -1,0 +1,213 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Auth Page</title>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+    <script>
+        function showTab(tabName) {
+            document.getElementById("login-form").style.display = "none";
+            document.getElementById("register-form").style.display = "none";
+            document.getElementById(tabName).style.display = "block";
+        }
+    </script>
+    <style>
+        /* Reset and base */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #fffdcc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Container */
+        .auth-container {
+            background: #FFFFFF;
+            padding: 30px;
+            border-radius: 12px;
+            width: auto;
+            box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        /* Heading */
+        .auth-container h2 {
+            margin-bottom: 20px;
+            color: #9a8174;
+        }
+
+        /* Flash messages */
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 15px;
+        }
+
+        ul li {
+            background: #16b102;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            color: #FFFFFF;
+            font-size: 14px;
+        }
+
+        /* Tabs (Login/Register buttons) */
+        .tab-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .tab-buttons button {
+            flex: 1;
+            padding: 10px;
+            margin: 0 5px;
+            background: #00ffdd;
+            border: none;
+            border-radius: 8px;
+            color: #050206;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .tab-buttons button:hover {
+            background: #050206;
+            color: #FFFFFF;
+        }
+
+        /* Forms */
+        /* Forms */
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            /* stretch to full width */
+        }
+
+        /* Form row wrapper */
+        .form-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            flex: 1;
+            font-size: 14px;
+            margin-right: 10px;
+            text-align: left;
+            color: #000000;
+            font-size: 1.1rem;
+        }
+
+        .form-group input {
+            flex: 2;
+            padding: 10px;
+            border: 1px solid #00ffdd;
+            border-radius: 8px;
+            outline: none;
+            background: #FFFFFF;
+            color: #050206;
+        }
+
+        /* Keep button centered */
+        form button {
+            align-self: center;
+            padding: 12px 24px;
+            background: #00ffdd;
+            border: none;
+            border-radius: 8px;
+            color: #050206;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        form button:hover {
+            background: #050206;
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-container">
+        <h2>Authentication</h2>
+
+        <!-- Flash messages -->
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <!-- Tab buttons -->
+        <div class="tab-buttons">
+            <button type="button" onclick="showTab('login-form')">Login</button>
+            <button type="button" onclick="showTab('register-form')">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" method="POST" action="{% url 'ninamwrites_admin:login' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Username:</label>
+                <input type="text" name="username" required>
+            </div>
+        
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" name="password" required>
+            </div>
+        
+            <button type="submit">Login</button>
+        </form>
+        
+        <!-- registration form -->
+        <form id="register-form" method="POST" action="{% url 'ninamwrites_admin:login' %}" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="register">
+
+            <div class="form-group">
+                <label>Name:</label>
+                <input type="text" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" name="password" required>
+            </div>
+
+            <div class="form-group">
+                <label>Confirm Password:</label>
+                <input type="password" name="password_confirm" required>
+            </div>
+
+            <button type="submit">Register</button>
+        </form>
+
+    </div>
+
+    <script>
+        // Show login form by default
+        showTab('login-form');
+    </script>
+</body>
+
+</html>
