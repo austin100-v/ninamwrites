@@ -1,0 +1,180 @@
+{% extends 'bookstore/base.html' %}
+{% load static %}
+
+{% block title %}My Cart{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'bookstore/css/cart.css' %}">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+{% endblock %}
+
+{% block content %}
+<header>
+    <div class="header-content">
+        <h1>Your Cart</h1>
+        <p>Review your selected items before proceeding to checkout.</p>
+    </div>
+</header>
+<section class="cart">
+    <h2>Items in Your Cart</h2>
+    {% if cart_items %}
+    <table class="cart-table">
+        <thead>
+            <tr>
+                <th>Book</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart_items %}
+            <tr class="cart-item" data-price="{{ item.book.price }}" data-book-id="{{ item.book.id }}">
+
+                <!-- Book image + title -->
+                <td class="book-details">
+                    <img src="{{ item.book.image.url }}" alt="{{ item.book.title }}" width="50" height="75">
+                    <p>{{ item.book.title }}</p>
+                </td>
+
+                <!-- Price -->
+                <td>${{ item.book.price }}</td>
+
+                <!-- Quantity controls -->
+                <td>
+                    <div class="quantity-specs">
+                        <button type="button" class="minus">-</button>
+                        <input type="number" class="quantity" value="{{ item.quantity }}" min="1">
+                        <button type="button" class="add">+</button>
+                    </div>
+                </td>
+
+                <!-- Subtotal -->
+                <td class="item-total">
+                    ${{ item.book.price|floatformat:2 }}
+                </td>
+
+                <!-- Remove -->
+                <td>
+                    <button type="submit" class="remove">Remove</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Your cart is empty. Start shopping!</p>
+    <button type="button" class="shop">Shop</button>
+    {% endif %}
+
+    <!-- Cart Summary -->
+    <div class="cart-summary">
+        <h3>Total: $<span id="cart-total">{{ total_price }}</span></h3>
+        <button class="checkout" type="button">Proceed to Checkout</button>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        function updateCartDisplay(bookId, quantity, newTotal) {
+            const item = document.querySelector(`.cart-item[data-book-id="${bookId}"]`);
+            if (item) {
+                const price = parseFloat(item.dataset.price);
+                item.querySelector(".item-total").textContent = `Subtotal: $${(price * quantity).toFixed(2)}`;
+            }
+            document.getElementById("cart-total").textContent = newTotal.toFixed(2);
+        }
+
+        function sendQuantityUpdate(bookId, quantity) {
+            fetch(`/cart/update/${bookId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: `quantity=${quantity}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateCartDisplay(bookId, quantity, data.total);
+                    } else {
+                        alert(data.message);
+                    }
+                });
+        }
+
+        document.querySelectorAll(".cart-item").forEach(item => {
+            const addBtn = item.querySelector(".add");
+            const minusBtn = item.querySelector(".minus");
+            const quantityInput = item.querySelector(".quantity");
+            const removeBtn = item.querySelector(".remove");
+            const bookId = item.dataset.bookId;
+
+            addBtn.addEventListener("click", function () {
+                let newQty = parseInt(quantityInput.value) + 1;
+                quantityInput.value = newQty;
+                sendQuantityUpdate(bookId, newQty);
+            });
+
+            minusBtn.addEventListener("click", function () {
+                let newQty = parseInt(quantityInput.value);
+                if (newQty > 1) {
+                    newQty -= 1;
+                    quantityInput.value = newQty;
+                    sendQuantityUpdate(bookId, newQty);
+                }
+            });
+
+            quantityInput.addEventListener("change", function () {
+                let newQty = parseInt(quantityInput.value);
+                if (isNaN(newQty) || newQty < 1) {
+                    newQty = 1;
+                    quantityInput.value = newQty;
+                }
+                sendQuantityUpdate(bookId, newQty);
+            });
+
+            removeBtn.addEventListener("click", function () {
+                fetch(`/cart/remove/${bookId}/`, {
+                    method: "POST",
+                    headers: { "X-CSRFToken": getCookie("csrftoken") },
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            item.remove();
+                            if (data.empty) {
+                                document.querySelector(".cart-container").innerHTML = `<p class="empty-message">Your cart is empty.</p>`;
+                            } else {
+                                document.getElementById("cart-total").textContent = data.total.toFixed(2);
+                            }
+                        } else {
+                            alert(data.message);
+                        }
+                    });
+            });
+
+        });
+    });
+
+</script>
+{% endblock %}

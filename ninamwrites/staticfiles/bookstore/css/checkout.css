@@ -1,0 +1,136 @@
+header {
+  position: relative;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  overflow: hidden;
+  /* ensures pseudo-elements don’t leak out */
+}
+
+/* background image */
+header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("../images/header-checkout-bg.jpg") no-repeat center center;
+  background-size: cover;
+  transition: transform 0.5s ease-in-out;
+  z-index: -2;
+  /* keep it behind everything */
+}
+
+/* dark overlay */
+header::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #9a81746a;
+  /* black with 40% transparency */
+  z-index: -1;
+  /* sits between background and text */
+}
+
+/* zoom effect */
+header:hover::before {
+  transform: scale(1.1);
+}
+
+.header-content {
+  display: flex;
+  text-align: center;
+  flex-direction: column;
+}
+
+.header-content h1 {
+  font-size: 2.5em;
+  margin: 0;
+}
+
+.header-content p {
+  font-size: 1.2em;
+  margin: 10px 0 0;
+}
+
+.checkout {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.checkout form {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+  border: 1px solid #9a8174;
+  box-shadow: 5px 5px 15px #9a8174a5;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.checkout form label {
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.checkout form input {
+  padding: 10px;
+  border: solid 1px #ccc;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.checkout form button {
+  padding: 10px 20px;
+  border: none;
+  background-color: #9a8174;
+  color: #ffffff;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  border-radius: 5px;
+  width: 50%;
+  justify-self: center;
+  align-self: center;
+}
+
+.checkout form button:hover {
+  transform: scale(1.05);
+}
+
+.alternative-payment {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.alternative-payment button {
+  background-color: #9a8174;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  margin: 0 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+.alternative-payment button:hover {
+  transform: scale(1.05);
+}

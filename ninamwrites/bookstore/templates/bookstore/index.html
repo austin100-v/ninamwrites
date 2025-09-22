@@ -1,0 +1,184 @@
+{% extends 'bookstore/base.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'bookstore/css/home.css' %}">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+
+{% endblock %}
+
+{% block content %}
+<header>
+    <div class="header-content">
+        <h1>Discover Your Next Favourite Book Today</h1>
+        <p>Hi, welcome to my online store, here you can find my books ranging from poetry to epic and authentic
+            storytelling.</p>
+        <div class="header-buttons">
+            <button id="header-shop">Shop</button>
+            <button id="learn">Learn More</button>
+        </div>
+    </div>
+    <div class="header-image">
+        <img src="{% static 'bookstore/images/home_image.jpg' %}" alt="Home Image">
+    </div>
+</header>
+<section class="books">
+    <h2>Featured Books</h2>
+    <button onclick="window.location.href='{% url 'bookstore:books' %}'">View all</button>
+    <div class="book-list">
+        {% for book in books %}
+        <div class="book-item">
+            <img src="{{ book.image.url }}" alt="{{ book.title }}">
+            <h3>{{ book.title }}</h3>
+            <p>${{ book.price }}</p>
+            <p>{{ book.description }}</p>
+            <button>Add to Cart</button>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+<section class="testimonials" id="testimonials">
+    <h2>What The Readers Say</h2>
+
+    <div class="testimonial-wrapper">
+        <button class="prev">&#8592;</button>
+
+        <div class="testimonial-list">
+            {% for testimonial in testimonials %}
+            <div class="testimonial-item {% if forloop.first %}active{% endif %}">
+                <p>"{{ testimonial.content }}"</p>
+                <h4>- {{ testimonial.author }}</h4>
+            </div>
+            {% endfor %}
+        </div>
+
+        <button class="next">&#8594;</button>
+    </div>
+
+    <div class="slider-dots">
+        {% for testimonial in testimonials %}
+        <span class="dot {% if forloop.first %}active{% endif %}"></span>
+        {% endfor %}
+    </div>
+</section>
+<section class="testimonial-form">
+    <h2>Share Your Thoughts</h2>
+
+    {% if user.is_authenticated and user_has_purchased %}
+    <form method="post" action="{% url 'bookstore:testimonial' %}">
+        {% csrf_token %}
+        <label for="author">Your Name:</label>
+        <input type="text" id="author" name="author" value="{{ user.get_full_name|default:user.username }}" required
+            readonly>
+
+        <label for="content">Your Testimonial:</label>
+        <textarea id="content" name="content" rows="4" required></textarea>
+
+        <button type="submit">Submit</button>
+    </form>
+    {% else %}
+    <p>You must be logged in and have purchased a book to leave a testimonial.</p>
+    {% endif %}
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("testimonialForm");
+        const message = document.getElementById("testimonialMsg");
+        const testimonialList = document.querySelector(".testimonial-list");
+        const dotsContainer = document.querySelector(".slider-dots");
+
+        if (form) {
+            form.addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(form);
+                const csrfToken = form.querySelector("[name=csrfmiddlewaretoken]").value;
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": csrfToken,
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        // ✅ Add testimonial dynamically
+                        const newTestimonial = document.createElement("div");
+                        newTestimonial.classList.add("testimonial-item");
+                        newTestimonial.style.display = "none"; // hidden at first
+                        newTestimonial.innerHTML = `<p>"${data.content}"</p><h4>- ${data.author}</h4>`;
+                        testimonialList.appendChild(newTestimonial);
+
+                        // ✅ Add new dot
+                        const newDot = document.createElement("span");
+                        newDot.classList.add("dot");
+                        dotsContainer.appendChild(newDot);
+
+                        // ✅ Reset form
+                        form.reset();
+                        message.style.display = "block";
+
+                        // ✅ Reinitialize slider
+                        initializeSlider();
+                    }
+                } catch (error) {
+                    console.error("Error submitting testimonial:", error);
+                }
+            });
+        }
+
+        function initializeSlider() {
+            const testimonials = document.querySelectorAll(".testimonial-item");
+            const dots = document.querySelectorAll(".dot");
+            let currentIndex = 0;
+
+            function showTestimonial(index) {
+                testimonials.forEach((item, i) => {
+                    item.style.display = i === index ? "block" : "none";
+                    dots[i].classList.toggle("active", i === index);
+                });
+            }
+
+            showTestimonial(currentIndex);
+
+            document.querySelector(".prev").onclick = () => {
+                currentIndex = (currentIndex - 1 + testimonials.length) % testimonials.length;
+                showTestimonial(currentIndex);
+            };
+
+            document.querySelector(".next").onclick = () => {
+                currentIndex = (currentIndex + 1) % testimonials.length;
+                showTestimonial(currentIndex);
+            };
+
+            dots.forEach((dot, i) => {
+                dot.onclick = () => {
+                    currentIndex = i;
+                    showTestimonial(i);
+                };
+            });
+
+            // ✅ Auto slide
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % testimonials.length;
+                showTestimonial(currentIndex);
+            }, 5000);
+        }
+
+        initializeSlider();
+    });
+</script>
+
+{% endblock %}

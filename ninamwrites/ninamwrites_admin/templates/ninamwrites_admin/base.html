@@ -1,0 +1,195 @@
+{% load static i18n %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}NinamWrites Admin{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'admin/css/base.css' %}">
+    <!-- <link rel="stylesheet" href="{% static 'admin/css/dashboard.css' %}"> -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+        }
+
+        header {
+            background: #1e3a8a;
+            color: white;
+            padding: 15px;
+        }
+
+        header h1 {
+            font-family: 'Playfair Display', serif;
+            margin: 0;
+            font-size: clamp(1rem, calc(1vw + 1rem), 2rem);
+        }
+        .nav {
+            background: #1e3a8a;
+            color: white;
+            padding: 15px;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .nav-links ul,
+        .nav-links li {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }            
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: color 0.3s ease;
+        }
+        .nav-links a:hover {
+            color: #000000;
+            /* blue-600 */
+        }
+        .nav-links a.active {
+            /* background-color: #2563eb; */
+            color: #000000;
+            /* blue-600 */
+        }
+        .logout-btn {
+            background: none;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            transition: color 0.3s ease;
+            border: none;
+        }
+        .logout-btn:hover{
+            color: #000000;
+        }
+        .content {
+            padding: 20px;
+        }
+
+        /* dashboard.css */
+
+        /* General page styling */
+        .dashboard-title {
+            font-size: clamp(1rem, calc(1vw + 1rem), 2rem);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: #1e40af;
+            /* deep blue */
+        }
+
+        /* Dashboard grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(clamp(150px, calc(1vw + 1rem), 250px), 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Card styling */
+        .card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h2 {
+            font-size: clamp(0.8rem, calc(1vw + 1rem), 1.25rem);
+            margin-bottom: 0.5rem;
+            color: #111827;
+            /* almost black */
+        }
+
+        .card p {
+            font-size: clamp(0.5rem, calc(1vw + 0.5rem), 1rem);
+            margin-bottom: 1rem;
+            color: #374151;
+            /* gray-700 */
+        }
+
+        /* Links in cards */
+        .card a {
+            display: inline-block;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            background-color: #3b82f6;
+            /* blue-500 */
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: clamp(0.5rem, calc(1vw + 0.5rem), 0.9rem);
+            transition: background-color 0.2s;
+        }
+
+        .card a:hover {
+            background-color: #2563eb;
+            /* blue-600 */
+        }
+
+        /* Chart styling */
+        canvas {
+            width: 100% !important;
+            max-width: clamp(300px, calc(100vw - 40px), 900px);
+            margin: 1rem auto;
+            display: block;
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 640px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    {% block extrahead %}{% endblock %}
+</head>
+
+<body>
+    <header>
+        <h1>NinamWrites Admin Dashboard</h1>
+    </header>
+    <div class="nav">
+    <nav class="nav-links">
+        <ul>
+            <li><a href="{% url 'ninamwrites_admin:index' %}">Dashboard</a></li>
+            <li><a href="{% url 'ninamwrites_admin:add_book' %}">Book</a></li>
+            <li><a href="{% url 'ninamwrites_admin:add_merch' %}">Merch</a></li>
+            <li><a href="{% url 'ninamwrites_admin:view_orders' %}">Orders</a></li>
+            <li><a href="{% url 'ninamwrites_admin:view_subscribers' %}">Subscribers</a></li>
+            <li><a href="{% url 'ninamwrites_admin:view_testimonials' %}">Testimonials</a></li>
+            <li><form action="{% url 'ninamwrites_admin:logout' %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+            </li>
+        </ul>
+        
+    </nav>
+    </div>
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+    {% block extrajs %}{% endblock %}
+</body>
+
+</html>

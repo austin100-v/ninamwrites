@@ -1,0 +1,119 @@
+{% extends 'bookstore/base.html' %}
+{% load static %}
+
+{% block title %}Merchandise{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'bookstore/css/merch.css' %}">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+{% endblock %}
+
+{% block content %}
+<header>
+    <div class="header-content">
+        <h1>Merchandise</h1>
+        <p>Explore our exclusive merchandise collection.</p>
+    </div>
+</header>
+<!-- Merchandise Section -->
+<!-- This section displays all the merchandise items available for purchase -->
+<section class="merchandise">
+    <h2>Merchandise</h2>
+
+    <!-- Filter & Sort Controls -->
+    <div class="controls">
+        <input type="text" id="search" placeholder="Search merchandise...">
+        <select id="filter">
+            <option value="default">Filter by Category</option>
+            <option value="all">All</option>
+            <option value="clothing">Clothing</option>
+            <option value="accessories">Accessories</option>
+        </select>
+        <select id="sort">
+            <option value="default">Sort by</option>
+            <option value="low-high">Price: Low to High</option>
+            <option value="high-low">Price: High to Low</option>
+        </select>
+    </div>
+
+    <div class="merch-list" id="merch-list">
+        <!-- Clothing Items -->
+        {% for merch in merch_clothing_items %}
+        <article class="merch-item merch-clothing-item" 
+                 data-category="clothing" 
+                 data-price="{{ merch.price }}" 
+                 data-name="{{ merch.title|lower }}">
+            <img src="{{ merch.image.url }}" alt="{{ merch.title }}">
+            <h3>{{ merch.title }}</h3>
+            <p class="price">${{ merch.price|floatformat:2 }}</p>
+
+            <label for="size-{{ forloop.counter }}">Size:</label>
+            <select name="size" id="size-{{ forloop.counter }}">
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+                <option value="xlarge">X-Large</option>
+                <option value="xxlarge">XX-Large</option>
+            </select>
+
+            <button class="add-to-cart">Add to Cart</button>
+        </article>
+        {% endfor %}
+
+        <!-- Accessories Items -->
+        {% for merch in merch_accessories %}
+        <article class="merch-item merch-accessory-item" 
+                 data-category="accessories" 
+                 data-price="{{ merch.price }}" 
+                 data-name="{{ merch.title|lower }}">
+            <img src="{{ merch.image.url }}" alt="{{ merch.title }}">
+            <h3>{{ merch.title }}</h3>
+            <p class="price">${{ merch.price|floatformat:2 }}</p>
+            <button class="add-to-cart">Add to Cart</button>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- JavaScript for Filtering, Sorting, and Searching -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const merchList = document.getElementById("merch-list");
+        const items = Array.from(merchList.getElementsByClassName("merch-item"));
+        const filter = document.getElementById("filter");
+        const sort = document.getElementById("sort");
+        const search = document.getElementById("search");
+
+        function updateDisplay() {
+            let selectedFilter = filter.value;
+            let sortValue = sort.value;
+            let searchValue = search.value.toLowerCase();
+
+            // Filter + Search
+            let filteredItems = items.filter(item => {
+                let matchesCategory = (selectedFilter === "all" || item.dataset.category === selectedFilter);
+                let matchesSearch = item.dataset.name.includes(searchValue);
+                return matchesCategory && matchesSearch;
+            });
+
+            // Sort
+            if (sortValue === "low-high") {
+                filteredItems.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+            } else if (sortValue === "high-low") {
+                filteredItems.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+            }
+
+            // Re-render
+            merchList.innerHTML = "";
+            const fragment = document.createDocumentFragment();
+            filteredItems.forEach(item => fragment.appendChild(item));
+            merchList.appendChild(fragment);
+        }
+
+        filter.addEventListener("change", updateDisplay);
+        sort.addEventListener("change", updateDisplay);
+        search.addEventListener("input", updateDisplay);
+
+        updateDisplay(); // initial run
+    });
+</script>
+{% endblock %}

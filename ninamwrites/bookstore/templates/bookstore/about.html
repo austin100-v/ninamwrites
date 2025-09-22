@@ -1,0 +1,64 @@
+{% extends 'bookstore/base.html' %}
+{% load static %}
+
+{% block title %}About Me{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'bookstore/css/about.css' %}">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+
+{% endblock %}
+
+{% block content %}
+<header>
+    <div class="header-content">
+        <h1>About Nina M. Writes</h1>
+        <p>Discover the story behind my passion for storytelling and poetry.</p>
+    </div>
+</header>
+<section class="about">
+    <div class="about-content">
+        <h1>About Nina M. Writes</h1>
+        <p>Welcome to Nina M. Writes, your go-to destination for captivating stories and poetry that resonate with the
+            soul.
+            Our mission is to inspire and connect readers through the power of words.</p>
+        <div class="about-image">
+            <img src="{% static 'bookstore/images/about_image.jpg' %}" alt="My Picture">
+        </div>
+    </div>
+
+    <div class="my-story">
+        <h2>Our Story</h2>
+        <p>Nina M. Writes was founded with a passion for storytelling and a desire to share unique narratives that
+            reflect diverse experiences. From poetry to epic tales, we aim to create a literary space that welcomes all
+            readers.
+        </p>
+
+    </div>
+
+</section>
+<!-- <section class="team">
+        <h2>Meet the Team</h2>
+        <div class="team-list">
+            <div class="team-member">
+                <img src="{% static 'bookstore/images/team_member1.jpg' %}" alt="Team Member 1">
+                <h3>Nina M.</h3>
+                <p>Founder & Author</p>
+            </div>
+            <div class="team-member">
+                <img src="{% static 'bookstore/images/team_member2.jpg' %}" alt="Team Member 2">
+                <h3>John Doe</h3>
+                <p>Editor</p>
+            </div>
+            Add more team members as needed 
+        </div>
+
+    </section> -->
+<section class="call-to-action">
+    <h2>Discover Your Next Great Read </h2>
+    <p>Dive into my books and ignite your imagination</p>
+    <div class="cta-buttons">
+        <button type="button" id="cta-shop">Shop Now</button>
+        <button type="button" id="learn">Learn More</button>
+    </div>
+</section>
+{% endblock %}

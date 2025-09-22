@@ -1,0 +1,120 @@
+/* Layout */
+header {
+    background-color: #9a8174;
+    padding: 20px;
+    text-align: center;
+}
+.header-content {
+    font-family: 'Playfair Display', serif;
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+header h1 {
+    color: white;
+    margin: 0;
+    font-size: 2.5em;
+}
+header p {
+    color: white;
+    margin: 5px 0 0;
+    font-size: 1.2em;
+}
+.merchandise {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.merchandise h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 2em;
+    color: #9a8174;
+}
+.controls {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#search,
+#filter,
+#sort {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    width: 200px;
+    font-size: 1rem;
+    color: #000000;
+}
+
+.merch-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.merch-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.merch-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.merch-item img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.price {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #333;
+}
+
+article button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #9a8174;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+article button:hover {
+    transform: scale(1.05);
+}
+/* responsive */    
+@media (max-width: 600px) {
+    .header-content {
+        padding: 10px;
+    }
+    header h1 {
+        font-size: 1.8em;
+    }
+    header p {
+        font-size: 1em;
+    }
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .merch-list {
+        grid-template-columns: 1fr;
+    }
+}   

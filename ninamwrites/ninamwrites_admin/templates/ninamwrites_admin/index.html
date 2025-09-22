@@ -1,0 +1,85 @@
+{% extends "ninamwrites_admin/base.html" %}
+{% load i18n static %}
+{% block content %}
+<h1 class="dashboard-title">📊 Quick Stats</h1>
+
+<div class="dashboard">
+    <div class="card">
+        <h2>Books</h2>
+        <p>Total: {{ books_count }}</p>
+        <a href="{% url 'ninamwrites_admin:add_book' %}">Add Books</a>
+    </div>
+
+    <div class="card">
+        <h2>Merchandise</h2>
+        <p>Total: {{ merch_count }}</p>
+        <a href="{% url 'ninamwrites_admin:add_merch' %}">Add Merchandise</a>
+    </div>
+
+    <div class="card">
+        <h2>Orders</h2>
+        <p>Total: {{ orders_count }}</p>
+        <a href="{% url 'ninamwrites_admin:view_orders' %}">View Orders</a>
+    </div>
+
+    <div class="card">
+        <h2>Subscribers</h2>
+        <p>Total: {{ subs_count }}</p>
+        <a href="{% url 'ninamwrites_admin:view_subscribers' %}">View Subscribers</a>
+    </div>
+
+    <div class="card">
+        <h2>Testimonials</h2>
+        <a href="{% url 'ninamwrites_admin:view_testimonials' %}">View Testimonials</a>
+    </div>
+</div>
+
+<h2>📈 Orders Over Time</h2>
+<canvas id="ordersChart"></canvas>
+
+<h2>📬 Subscribers Growth</h2>
+<canvas id="subsChart"></canvas>
+
+<hr />
+{{ block.super }}
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+    const ordersData = {{ orders_by_month_json| safe }};
+    const subsData = {{ subs_by_month_json| safe }};
+
+    // Orders Chart
+    new Chart(document.getElementById('ordersChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: ordersData.map(o => o.month),
+            datasets: [{
+                label: 'Orders',
+                data: ordersData.map(o => o.count),
+                borderColor: 'blue',
+                backgroundColor: 'rgba(30, 64, 175, 0.2)',
+                fill: true
+            }]
+        }
+    });
+
+    // Subscribers Chart
+    new Chart(document.getElementById('subsChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: subsData.map(s => s.month),
+            datasets: [{
+                label: 'Subscribers',
+                data: subsData.map(s => s.count),
+                backgroundColor: 'rgba(34, 197, 94, 0.5)'
+            }]
+        }
+    });
+</script>
+{% endblock %}

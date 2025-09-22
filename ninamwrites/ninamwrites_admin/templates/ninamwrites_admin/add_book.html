@@ -1,0 +1,209 @@
+{% extends "ninamwrites_admin/base.html" %}
+
+{% block extrahead %}
+<style>
+    .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .tab-button {
+        padding: 5px 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .tab-button:hover {
+        background-color: #ccc;
+    }
+    .tab-button.active {
+        background-color: #000;
+        color: #fff;
+    }
+    .tab-content {
+        display: none;
+    }
+    .tab-content.active {
+        display: block;
+    }
+
+    h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1rem, calc(1vw + 1rem), 2rem);
+        margin-bottom: 20px;
+    }
+    table {
+        width: clamp(300px, calc(100vw - 40px), 600px);
+        border-collapse: collapse;
+    }
+    thead, tbody, td {
+        padding: 10px;
+        text-align: left;
+    }
+    thead {
+        background-color: #1e3a8a;
+        color: white;
+    }
+    tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    tbody tr:hover {
+        background-color: #ddd;
+    }
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: clamp(300px, calc(100vw - 40px), 600px);
+        margin: 0 auto;
+    }
+    label {
+        font-weight: bold;
+    }
+    input {
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    button {
+        padding: 5px 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tabs">
+    <button class="tab-button active" data-tab="manage-books">Manage Books</button>
+    <button class="tab-button" data-tab="add-book">Add Book</button>
+</div>
+
+<!-- Manage Books Tab -->
+<div class="tab-content active" id="manage-books">
+    <h1>Manage Books</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Price</th>
+                <th>ISBN</th>
+                <th>Published Date</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="books-list">   <!-- ✅ ID needed for JS to append new rows -->
+            {% for book in books %}
+            <tr>
+                <td>{{ book.title }}</td>
+                <td>{{ book.author }}</td>
+                <td>AUD {{ book.price }}</td>
+                <td>{{ book.isbn }}</td>
+                <td>{{ book.published_date }}</td>
+                <td>
+                    <a class="btn btn-sm btn-primary"
+                       href="{% url 'ninamwrites_admin:edit_book' book.pk %}">Edit</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">No books yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Add / Edit Book Tab -->
+<div class="tab-content" id="add-book">
+    <h1>Add Book</h1>
+    <form method="post" id="add-book-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+
+        <label for="author">Author:</label>
+        <input type="text" id="author" name="author" required>
+
+        <label for="description">Description:</label>
+        <input type="text" id="description" name="description" required>
+
+        <label for="price">Price:</label>
+        <input type="number" step="0.01" id="price" name="price" required>
+
+        <label for="published_date">Published Date:</label>
+        <input type="date" id="published_date" name="published_date" required>
+
+        <label for="stock_quantity">Stock Quantity:</label>
+        <input type="number" id="stock_quantity" name="stock_quantity" required>
+
+        <label for="isbn">ISBN:</label>
+        <input type="text" id="isbn" name="isbn" required>
+
+        <label for="image">Image:</label>
+        <input type="file" id="image" name="image" required>
+
+        <button id="add-book-button" type="submit">Add Book</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tabs = document.querySelectorAll(".tab-button");
+    const tabContents = document.querySelectorAll(".tab-content");
+
+    // Tab toggle
+    tabs.forEach(tab => {
+        tab.addEventListener("click", function () {
+            tabs.forEach(t => t.classList.remove("active"));
+            tabContents.forEach(c => c.classList.remove("active"));
+            tab.classList.add("active");
+            document.getElementById(tab.dataset.tab).classList.add("active");
+        });
+    });
+
+    // AJAX Add Book
+    const addBookForm = document.getElementById("add-book-form");
+    addBookForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const formData = new FormData(addBookForm);
+
+        fetch("{% url 'ninamwrites_admin:add_book' %}", {
+            method: "POST",
+            body: formData,
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const tbody = document.getElementById("books-list");
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${data.book.title}</td>
+                    <td>${data.book.author}</td>
+                    <td>AUD ${data.book.price}</td>
+                    <td>${data.book.isbn || ""}</td>
+                    <td>${data.book.published_date || ""}</td>
+                    <td>
+                        <a class="btn btn-sm btn-primary" href="${data.book.edit_url}">
+                            Edit
+                        </a>
+                    </td>`;
+                tbody.appendChild(tr);
+
+                // Switch back to Manage Books tab
+                document.querySelector('[data-tab="manage-books"]').click();
+                addBookForm.reset();
+            } else {
+                alert("Error: " + data.error);
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    });
+});
+</script>
+{% endblock %}
