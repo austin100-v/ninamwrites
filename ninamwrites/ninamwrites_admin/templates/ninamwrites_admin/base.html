@@ -5,190 +5,593 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}NinamWrites Admin{% endblock %}</title>
+    
+    <!-- External Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Base Admin CSS -->
     <link rel="stylesheet" href="{% static 'admin/css/base.css' %}">
-    <!-- <link rel="stylesheet" href="{% static 'admin/css/dashboard.css' %}"> -->
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+    
     <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-tertiary: #ffffff;
+            --border-color: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --border-radius: 0.5rem;
+            --border-radius-lg: 0.75rem;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f9;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background-color);
             margin: 0;
+            color: var(--text-primary);
+            line-height: 1.6;
         }
 
-        header {
-            background: #1e3a8a;
+        /* Header Styles */
+        .admin-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
             color: white;
-            padding: 15px;
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
-        header h1 {
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header h1 {
             font-family: 'Playfair Display', serif;
             margin: 0;
-            font-size: clamp(1rem, calc(1vw + 1rem), 2rem);
+            font-size: clamp(1.25rem, 2.5vw, 2rem);
+            font-weight: 600;
         }
-        .nav {
-            background: #1e3a8a;
-            color: white;
-            padding: 15px;
+
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.875rem;
         }
+
+        /* Navigation Styles */
+        .admin-nav {
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
         .nav-links {
             display: flex;
-            justify-content: space-around;
             align-items: center;
-        }
-        .nav-links ul,
-        .nav-links li {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            gap: 0.5rem;
             list-style: none;
             margin: 0;
             padding: 0;
-        }            
+            overflow-x: auto;
+        }
+
+        .nav-links li {
+            flex-shrink: 0;
+            list-style: none;
+        }
 
         .nav-links a {
-            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            color: var(--text-secondary);
             text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            transition: color 0.3s ease;
+            font-weight: 500;
+            font-size: 0.875rem;
+            border-radius: var(--border-radius);
+            transition: all 0.2s ease;
+            position: relative;
         }
+
         .nav-links a:hover {
-            color: #000000;
-            /* blue-600 */
+            background: var(--background-color);
+            color: var(--primary-color);
         }
+
         .nav-links a.active {
-            /* background-color: #2563eb; */
-            color: #000000;
-            /* blue-600 */
+            color: var(--primary-color);
+            background: var(--background-color);
         }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 2px;
+            background: var(--primary-color);
+            border-radius: 1px;
+        }
+
+        .nav-links i {
+            font-size: 1rem;
+        }
+
+        /* Logout Button */
+        .logout-form {
+            display: inline;
+        }
+
         .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
             background: none;
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            transition: color 0.3s ease;
             border: none;
-        }
-        .logout-btn:hover{
-            color: #000000;
-        }
-        .content {
-            padding: 20px;
-        }
-
-        /* dashboard.css */
-
-        /* General page styling */
-        .dashboard-title {
-            font-size: clamp(1rem, calc(1vw + 1rem), 2rem);
-            margin-bottom: 1.5rem;
-            text-align: center;
-            color: #1e40af;
-            /* deep blue */
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.875rem;
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
         }
 
-        /* Dashboard grid */
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(clamp(150px, calc(1vw + 1rem), 250px), 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+        .logout-btn:hover {
+            background: #fee2e2;
+            color: var(--danger-color);
         }
 
-        /* Card styling */
+        /* Main Content */
+        .admin-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: calc(100vh - 200px);
+        }
+
+        /* Page Title */
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.5rem, 3vw, 2.25rem);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 2rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .page-title i {
+            color: var(--primary-color);
+            font-size: 0.9em;
+        }
+
+        /* Cards */
         .card {
-            background-color: #ffffff;
-            border-radius: 12px;
+            background: var(--surface-color);
+            border-radius: var(--border-radius-lg);
             padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
         }
 
-        .card h2 {
-            font-size: clamp(0.8rem, calc(1vw + 1rem), 1.25rem);
-            margin-bottom: 0.5rem;
-            color: #111827;
-            /* almost black */
+        /* Tables */
+        .table-container {
+            background: var(--surface-color);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
         }
 
-        .card p {
-            font-size: clamp(0.5rem, calc(1vw + 0.5rem), 1rem);
-            margin-bottom: 1rem;
-            color: #374151;
-            /* gray-700 */
+        .professional-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
         }
 
-        /* Links in cards */
-        .card a {
-            display: inline-block;
-            margin-right: 0.5rem;
-            margin-bottom: 0.5rem;
-            padding: 0.4rem 0.8rem;
-            background-color: #3b82f6;
-            /* blue-500 */
-            color: #ffffff;
+        .professional-table thead {
+            background: var(--background-color);
+        }
+
+        .professional-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .professional-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .professional-table tbody tr:hover {
+            background: var(--background-color);
+        }
+
+        .professional-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
             text-decoration: none;
-            border-radius: 6px;
-            font-size: clamp(0.5rem, calc(1vw + 0.5rem), 0.9rem);
-            transition: background-color 0.2s;
+            transition: all 0.2s ease;
+            font-family: inherit;
         }
 
-        .card a:hover {
-            background-color: #2563eb;
-            /* blue-600 */
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
         }
 
-        /* Chart styling */
-        canvas {
-            width: 100% !important;
-            max-width: clamp(300px, calc(100vw - 40px), 900px);
-            margin: 1rem auto;
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .tab-button:hover {
+            color: var(--primary-color);
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
             display: block;
         }
 
-        /* Responsive tweaks */
-        @media (max-width: 640px) {
-            .dashboard {
-                grid-template-columns: 1fr;
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .admin-content {
+                padding: 1rem;
             }
+            
+            .header-content {
+                padding: 0 1rem;
+            }
+            
+            .nav-content {
+                padding: 0 1rem;
+            }
+            
+            .nav-links {
+                gap: 0;
+            }
+            
+            .nav-links a {
+                padding: 0.875rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+        }
+
+        /* Utilities */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .mb-4 { margin-bottom: 1.5rem; }
+        .mt-4 { margin-top: 1.5rem; }
+        .d-flex { display: flex; }
+        .justify-between { justify-content: space-between; }
+        .align-center { align-items: center; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+
+        /* Loading States */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Messages */
+        .messages {
+            margin-bottom: 1.5rem;
+        }
+
+        .message {
+            padding: 0.75rem 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .message.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .message.error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
         }
     </style>
     {% block extrahead %}{% endblock %}
 </head>
 
 <body>
-    <header>
-        <h1>NinamWrites Admin Dashboard</h1>
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="header-content">
+            <h1><i class="fas fa-feather-alt"></i> NinamWrites Admin</h1>
+            <div class="header-user">
+                <i class="fas fa-user-circle"></i>
+                <span>{{ user.username|capfirst }}</span>
+            </div>
+        </div>
     </header>
-    <div class="nav">
-    <nav class="nav-links">
-        <ul>
-            <li><a href="{% url 'ninamwrites_admin:index' %}">Dashboard</a></li>
-            <li><a href="{% url 'ninamwrites_admin:add_book' %}">Book</a></li>
-            <li><a href="{% url 'ninamwrites_admin:add_merch' %}">Merch</a></li>
-            <li><a href="{% url 'ninamwrites_admin:view_orders' %}">Orders</a></li>
-            <li><a href="{% url 'ninamwrites_admin:view_subscribers' %}">Subscribers</a></li>
-            <li><a href="{% url 'ninamwrites_admin:view_testimonials' %}">Testimonials</a></li>
-            <li><form action="{% url 'ninamwrites_admin:logout' %}" method="post" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit" class="logout-btn">Logout</button>
-            </form>
-            </li>
-        </ul>
-        
+
+    <!-- Navigation -->
+    <nav class="admin-nav">
+        <div class="nav-content">
+            <ul class="nav-links">
+                <li>
+                    <a href="{% url 'ninamwrites_admin:index' %}" 
+                       class="{% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+                        <i class="fas fa-chart-bar"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'ninamwrites_admin:add_book' %}" 
+                       class="{% if 'book' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-book"></i>
+                        Books
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'ninamwrites_admin:add_merch' %}" 
+                       class="{% if 'merch' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-tshirt"></i>
+                        Merchandise
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'ninamwrites_admin:view_orders' %}" 
+                       class="{% if 'order' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-shopping-cart"></i>
+                        Orders
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'ninamwrites_admin:view_subscribers' %}" 
+                       class="{% if 'subscriber' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-envelope"></i>
+                        Subscribers
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'ninamwrites_admin:view_testimonials' %}" 
+                       class="{% if 'testimonial' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-star"></i>
+                        Testimonials
+                    </a>
+                </li>
+                <li>
+                    <form action="{% url 'ninamwrites_admin:logout' %}" method="post" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
     </nav>
-    </div>
-    <main class="content">
+
+    <!-- Main Content -->
+    <main class="admin-content">
+        <!-- Messages -->
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         {% block content %}{% endblock %}
     </main>
+
+    <!-- Global JavaScript -->
+    <script>
+        // Global utilities
+        window.AdminUtils = {
+            showMessage: function(message, type = 'success') {
+                const messagesContainer = document.querySelector('.messages') || this.createMessagesContainer();
+                const messageEl = document.createElement('div');
+                messageEl.className = `message ${type}`;
+                messageEl.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    ${message}
+                `;
+                messagesContainer.appendChild(messageEl);
+                
+                setTimeout(() => {
+                    messageEl.remove();
+                    if (!messagesContainer.children.length) {
+                        messagesContainer.remove();
+                    }
+                }, 5000);
+            },
+            
+            createMessagesContainer: function() {
+                const container = document.createElement('div');
+                container.className = 'messages';
+                document.querySelector('.admin-content').prepend(container);
+                return container;
+            },
+            
+            setLoadingState: function(element, loading) {
+                if (loading) {
+                    element.classList.add('loading');
+                    const spinner = document.createElement('i');
+                    spinner.className = 'fas fa-spinner spinner';
+                    element.prepend(spinner);
+                } else {
+                    element.classList.remove('loading');
+                    const spinner = element.querySelector('.spinner');
+                    if (spinner) spinner.remove();
+                }
+            }
+        };
+    </script>
+    
     {% block extrajs %}{% endblock %}
 </body>
 

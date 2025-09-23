@@ -1,156 +1,294 @@
 {% extends "ninamwrites_admin/base.html" %}
 {% block extrahead %}
 <style>
+    .page-title {
+        margin-bottom: 2rem;
+    }
+
     .tabs {
         display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
     }
+
     .tab-button {
-        padding: 5px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
+        padding: 0.75rem 1.5rem;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: var(--text-secondary);
+        font-weight: 500;
         cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: inherit;
     }
+
     .tab-button:hover {
-        background-color: #ccc;
+        color: var(--primary-color);
     }
+
     .tab-button.active {
-        background-color: #000;
-        color: #fff;
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
     }
+
     .tab-content {
         display: none;
+        animation: fadeIn 0.3s ease;
     }
+
     .tab-content.active {
         display: block;
     }
-    form {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        width: clamp(300px, calc(100vw - 40px), 600px);
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-container {
+        background: var(--surface-color);
+        border-radius: var(--border-radius-lg);
+        padding: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        max-width: 600px;
         margin: 0 auto;
     }
-    label {
-        font-weight: bold;
+
+    .merch-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
     }
-    input {
-        padding: 5px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
+
+    .merch-table th,
+    .merch-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
     }
-    button {
-        padding: 5px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
+
+    .merch-table th {
+        background: var(--background-color);
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .merch-table tbody tr:hover {
+        background: var(--background-color);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8rem;
     }
 </style>
 {% endblock %}
+
 {% block content %}
+<h1 class="page-title">
+    <i class="fas fa-tshirt"></i> Merchandise Management
+</h1>
+
 <div class="tabs">
-    <button class="tab-button" data-tab="manage-merch">Manage Merchandise</button>
-    <button class="tab-button" data-tab="add-merch">Add Merchandise</button>
-</div>
-<div class="tab-content" id="manage-merch">
-    <h1>Manage Merchandise</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Price</th>
-                <th>Has Sizes</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for merch in merch %}
-            <tr>
-                <td>{{ merch.title }}</td>
-                <td>{{ merch.category }}</td>
-                <td>{{ merch.price }}</td>
-                <td>{{ merch.has_sizes }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <button class="tab-button active" data-tab="manage-merch">Manage Merchandise</button>
+    <button class="tab-button" data-tab="add-merch">Add New Merchandise</button>
 </div>
 
-<!-- add merch -->
+<div class="tab-content active" id="manage-merch">
+    <div class="d-flex justify-between align-center mb-4">
+        <h2><i class="fas fa-list"></i> Current Merchandise</h2>
+        <span class="text-secondary">Total: {{ merch|length }} items</span>
+    </div>
+    
+    {% if merch %}
+    <div class="table-container">
+        <table class="professional-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Has Sizes</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in merch %}
+                <tr>
+                    <td>{{ item.title }}</td>
+                    <td>
+                        <span class="badge {% if item.category == 'clothing' %}badge-primary{% else %}badge-secondary{% endif %}">
+                            {{ item.category|title }}
+                        </span>
+                    </td>
+                    <td>${{ item.price }}</td>
+                    <td>
+                        {% if item.has_sizes %}
+                        <i class="fas fa-check text-success"></i>
+                        {% else %}
+                        <i class="fas fa-times text-secondary"></i>
+                        {% endif %}
+                    </td>
+                    <td class="action-buttons">
+                        <button class="btn btn-primary btn-sm">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card text-center">
+        <i class="fas fa-tshirt fa-3x text-secondary mb-3"></i>
+        <h3>No Merchandise Found</h3>
+        <p class="text-secondary">Get started by adding your first merchandise item.</p>
+    </div>
+    {% endif %}
+</div>
+
 <div class="tab-content" id="add-merch">
-    <h1>Add Merchandise</h1>
-    <form method="post" id="add-merch-form">
-        {% csrf_token %}
-        <label for="title">Title:</label>
-        <input type="text" id="title" name="title" required>
-        <label for="description">Description:</label>
-        <input type="text" id="description" name="description" required>
-        <label for="price">Price:</label>
-        <input type="number" id="price" name="price" required>
-        <label for="category">Category:</label>
-        <select name="category" id="category" required>
-            <option value="clothing">Clothing</option>
-            <option value="accessories">Accessories</option>
-        </select>
-        <label for="has_sizes">Has Sizes:</label>
-        <input type="checkbox" id="has_sizes" name="has_sizes" required>
-        <label for="image">Image:</label>
-        <input type="file" id="image" name="image" required>
-        {{ form.as_p }}
-        <button type="submit">Add Merchandise</button>
-    </form>
+    <div class="form-container">
+        <h2><i class="fas fa-plus-circle"></i> Add New Merchandise</h2>
+        
+        <form method="post" id="add-merch-form" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="title" class="form-label">Product Title</label>
+                <input type="text" id="title" name="title" class="form-control" required 
+                       placeholder="Enter product title">
+            </div>
+
+            <div class="form-group">
+                <label for="description" class="form-label">Description</label>
+                <textarea id="description" name="description" class="form-control" rows="3" 
+                          placeholder="Enter product description" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="price" class="form-label">Price ($)</label>
+                <input type="number" id="price" name="price" class="form-control" step="0.01" min="0" 
+                       placeholder="0.00" required>
+            </div>
+
+            <div class="form-group">
+                <label for="category" class="form-label">Category</label>
+                <select id="category" name="category" class="form-control" required>
+                    <option value="">Select a category</option>
+                    <option value="clothing">Clothing</option>
+                    <option value="accessories">Accessories</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <div class="d-flex align-center gap-2">
+                    <input type="checkbox" id="has_sizes" name="has_sizes" class="form-control" style="width: auto;">
+                    <label for="has_sizes" class="form-label mb-0">This product has sizes</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="image" class="form-label">Product Image</label>
+                <input type="file" id="image" name="image" class="form-control" accept="image/*" required>
+                <small class="text-secondary">Recommended: Square aspect ratio, max 5MB</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-plus"></i> Add Merchandise
+            </button>
+        </form>
+    </div>
 </div>
 {% endblock %}
+
 {% block extrajs %}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Tab functionality
         const tabs = document.querySelectorAll(".tab-button");
         const tabContents = document.querySelectorAll(".tab-content");
 
-        // Tab toggle
         tabs.forEach(tab => {
             tab.addEventListener("click", function () {
+                // Remove active class from all tabs and contents
                 tabs.forEach(t => t.classList.remove("active"));
                 tabContents.forEach(c => c.classList.remove("active"));
 
-                tab.classList.add("active");
-                document.getElementById(tab.dataset.tab).classList.add("active");
+                // Add active class to clicked tab and corresponding content
+                this.classList.add("active");
+                document.getElementById(this.dataset.tab).classList.add("active");
             });
         });
 
-        // Add Book Form AJAX
+        // Form submission with AJAX
         const addMerchForm = document.getElementById("add-merch-form");
-        addMerchForm.addEventListener("submit", function (e) {
+        
+        addMerchForm.addEventListener("submit", async function (e) {
             e.preventDefault();
+            
+            const submitButton = addMerchForm.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            
+            // Set loading state
+            submitButton.innerHTML = '<i class="fas fa-spinner spinner"></i> Adding...';
+            submitButton.disabled = true;
 
-            const formData = new FormData(addMerchForm);
-
-            fetch("{% url 'ninamwrites_admin:add_merch' %}", {
-                method: "POST",
-                body: formData,
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest"
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Append new merch to Manage Merch list
-                        const merchList = document.getElementById("merch-list");
-                        const newMerch = document.createElement("p");
-                        newMerch.textContent = `${data.merch.title} - ${data.merch.category}`;
-                        merchList.appendChild(newMerch);
-
-                        // Switch back to Manage Merch tab
-                        document.querySelector('[data-tab="manage"]').click();
-
-                        // Reset form
-                        addMerchForm.reset();
-                    } else {
-                        alert("Error: " + data.error);
+            try {
+                const formData = new FormData(addMerchForm);
+                const response = await fetch("{% url 'ninamwrites_admin:add_merch' %}", {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "X-CSRFToken": formData.get('csrfmiddlewaretoken')
                     }
-                })
-                .catch(error => console.error("Error:", error));
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    AdminUtils.showMessage('Merchandise added successfully!', 'success');
+                    addMerchForm.reset();
+                    
+                    // Switch to manage tab after successful addition
+                    document.querySelector('[data-tab="manage-merch"]').click();
+                    
+                    // TODO: Refresh the merchandise list
+                } else {
+                    AdminUtils.showMessage(data.error || 'Error adding merchandise', 'error');
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                AdminUtils.showMessage('Something went wrong. Please try again.', 'error');
+            } finally {
+                // Reset button state
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+            }
+        });
+
+        // Add some interactivity to the form
+        const categorySelect = document.getElementById('category');
+        const hasSizesCheckbox = document.getElementById('has_sizes');
+
+        // Show size-related information when clothing is selected
+        categorySelect.addEventListener('change', function() {
+            if (this.value === 'clothing') {
+                hasSizesCheckbox.checked = true;
+            }
         });
     });
 </script>

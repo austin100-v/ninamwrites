@@ -1,209 +1,656 @@
 {% extends "ninamwrites_admin/base.html" %}
 
+{% block title %}{% if is_edit %}Edit Book{% else %}Manage Books{% endif %}{% endblock %}
+
 {% block extrahead %}
 <style>
     .tabs {
         display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
     }
+
     .tab-button {
-        padding: 5px 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
+        padding: 1rem 1.5rem;
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.875rem;
         cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+        font-family: inherit;
     }
+
     .tab-button:hover {
-        background-color: #ccc;
+        color: var(--primary-color);
+        background: var(--background-color);
     }
+
     .tab-button.active {
-        background-color: #000;
-        color: #fff;
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+        background: var(--background-color);
     }
+
     .tab-content {
         display: none;
     }
+
     .tab-content.active {
         display: block;
     }
 
-    h1 {
-        font-family: 'Playfair Display', serif;
-        font-size: clamp(1rem, calc(1vw + 1rem), 2rem);
-        margin-bottom: 20px;
+    .books-grid {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1rem;
     }
-    table {
-        width: clamp(300px, calc(100vw - 40px), 600px);
-        border-collapse: collapse;
+
+    .book-row {
+        display: grid;
+        grid-template-columns: 2fr 1.5fr 1fr 1.5fr 1.5fr 1.5fr;
+        gap: 1rem;
+        align-items: center;
+        padding: 1rem;
+        background: var(--surface-color);
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
     }
-    thead, tbody, td {
-        padding: 10px;
-        text-align: left;
+
+    .book-row a {
+        color: var(--text-tertiary);
     }
-    thead {
-        background-color: #1e3a8a;
-        color: white;
+
+    .book-row:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
     }
-    tbody tr:nth-child(even) {
-        background-color: #f2f2f2;
+
+    .book-row.header {
+        background: var(--background-color);
+        font-weight: 600;
+        color: var(--text-primary);
     }
-    tbody tr:hover {
-        background-color: #ddd;
+
+    .book-row.header:hover {
+        transform: none;
+        box-shadow: none;
     }
-    form {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        width: clamp(300px, calc(100vw - 40px), 600px);
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--border-color);
+    }
+
+    .book-form {
+        display: grid;
+        gap: 1.5rem;
+        max-width: 600px;
         margin: 0 auto;
     }
-    label {
-        font-weight: bold;
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
     }
-    input {
-        padding: 5px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
+
+    .form-row.full-width {
+        grid-template-columns: 1fr;
     }
-    button {
-        padding: 5px 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
+
+
+    .file-input-wrapper {
+        position: relative;
+        display: inline-block;
         cursor: pointer;
+        width: 100%;
+    }
+
+    .file-input {
+        opacity: 0;
+        position: absolute;
+        z-index: -1;
+    }
+
+    .file-input-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        border: 2px dashed var(--border-color);
+        border-radius: var(--border-radius);
+        background: var(--background-color);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .file-input-label:hover {
+        border-color: var(--primary-color);
+        background: rgba(37, 99, 235, 0.05);
+    }
+
+    .file-input-label.has-file {
+        border-color: var(--success-color);
+        background: rgba(16, 185, 129, 0.05);
+        color: var(--success-color);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+
+    .delete-confirm-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .delete-confirm-modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: var(--surface-color);
+        padding: 2rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-lg);
+        max-width: 400px;
+        width: 90%;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 1.5rem;
+    }
+
+    .success-message {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        background: var(--success-color);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+        z-index: 1001;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .error-message {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        background: var(--danger-color);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+        z-index: 1001;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+        }
+
+        to {
+            transform: translateX(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .book-row {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<h1 class="page-title">
+    <i class="fas fa-book"></i>
+    {% if is_edit %}Edit Book{% else %}Book Management{% endif %}
+</h1>
+
 <div class="tabs">
-    <button class="tab-button active" data-tab="manage-books">Manage Books</button>
-    <button class="tab-button" data-tab="add-book">Add Book</button>
+    <button class="tab-button active" data-tab="manage-books">
+        <i class="fas fa-list"></i>
+        Manage Books
+    </button>
+    <button class="tab-button" data-tab="add-book">
+        <i class="fas fa-plus"></i>
+        {% if is_edit %}Edit Book{% else %}Add Book{% endif %}
+    </button>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="delete-confirm-modal" id="deleteConfirmModal">
+    <div class="modal-content">
+        <h3><i class="fas fa-exclamation-triangle text-danger"></i> Confirm Deletion</h3>
+        <p>Are you sure you want to delete "<span id="deleteBookTitle"></span>"? This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete Book</button>
+        </div>
+    </div>
 </div>
 
 <!-- Manage Books Tab -->
 <div class="tab-content active" id="manage-books">
-    <h1>Manage Books</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Author</th>
-                <th>Price</th>
-                <th>ISBN</th>
-                <th>Published Date</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody id="books-list">   <!-- ✅ ID needed for JS to append new rows -->
-            {% for book in books %}
-            <tr>
-                <td>{{ book.title }}</td>
-                <td>{{ book.author }}</td>
-                <td>AUD {{ book.price }}</td>
-                <td>{{ book.isbn }}</td>
-                <td>{{ book.published_date }}</td>
-                <td>
-                    <a class="btn btn-sm btn-primary"
-                       href="{% url 'ninamwrites_admin:edit_book' book.pk %}">Edit</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6">No books yet.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="card">
+        {% if books %}
+        <div class="books-grid">
+            <!-- Header Row -->
+            <div class="book-row header">
+                <div><i class="fas fa-book"></i> Title</div>
+                <div><i class="fas fa-user"></i> Author</div>
+                <div><i class="fas fa-dollar-sign"></i> Price</div>
+                <div><i class="fas fa-barcode"></i> ISBN</div>
+                <div><i class="fas fa-calendar"></i> Published</div>
+                <div><i class="fas fa-cog"></i> Actions</div>
+            </div>
+
+            <!-- Books List -->
+            <div id="books-list">
+                {% for book in books %}
+                <div class="book-row" id="book-{{ book.pk }}">
+                    <div>{{ book.title }}</div>
+                    <div>{{ book.author }}</div>
+                    <div>${{ book.price }}</div>
+                    <div>{{ book.isbn|default:"—" }}</div>
+                    <div>{{ book.published_date|date:"M Y"|default:"—" }}</div>
+                    <div class="action-buttons">
+                        <a class="btn btn-primary btn-sm" href="{% url 'ninamwrites_admin:edit_book' book.pk %}">
+                            <i class="fas fa-edit"></i>
+                            Edit
+                        </a>
+                        <button class="btn btn-danger btn-sm delete-book-btn" data-book-id="{{ book.pk }}"
+                            data-book-title="{{ book.title }}">
+                            <i class="fas fa-trash"></i>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-book-open"></i>
+            <h3>No books yet</h3>
+            <p>Start by adding your first book using the "Add Book" tab.</p>
+        </div>
+        {% endif %}
+    </div>
 </div>
 
-<!-- Add / Edit Book Tab -->
+<!-- Add/Edit Book Tab -->
 <div class="tab-content" id="add-book">
-    <h1>Add Book</h1>
-    <form method="post" id="add-book-form" enctype="multipart/form-data">
-        {% csrf_token %}
-        <label for="title">Title:</label>
-        <input type="text" id="title" name="title" required>
+    <div class="card">
+        <form method="post" id="book-form" enctype="multipart/form-data" class="book-form">
+            {% csrf_token %}
 
-        <label for="author">Author:</label>
-        <input type="text" id="author" name="author" required>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="title" class="form-label">
+                        <i class="fas fa-book"></i> Title *
+                    </label>
+                    <input type="text" id="title" name="title" class="form-control"
+                        value="{% if book %}{{ book.title }}{% endif %}" required>
+                </div>
 
-        <label for="description">Description:</label>
-        <input type="text" id="description" name="description" required>
+                <div class="form-group">
+                    <label for="author" class="form-label">
+                        <i class="fas fa-user"></i> Author *
+                    </label>
+                    <input type="text" id="author" name="author" class="form-control"
+                        value="{% if book %}{{ book.author }}{% endif %}" required>
+                </div>
+            </div>
 
-        <label for="price">Price:</label>
-        <input type="number" step="0.01" id="price" name="price" required>
+            <div class="form-row full-width">
+                <div class="form-group">
+                    <label for="description" class="form-label">
+                        <i class="fas fa-align-left"></i> Description
+                    </label>
+                    <textarea id="description" name="description" class="form-control" rows="4"
+                        placeholder="Enter book description...">{% if book %}{{ book.description }}{% endif %}</textarea>
+                </div>
+            </div>
 
-        <label for="published_date">Published Date:</label>
-        <input type="date" id="published_date" name="published_date" required>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="price" class="form-label">
+                        <i class="fas fa-dollar-sign"></i> Price *
+                    </label>
+                    <input type="number" id="price" name="price" class="form-control" step="0.01" min="0"
+                        value="{% if book %}{{ book.price }}{% endif %}" required>
+                </div>
 
-        <label for="stock_quantity">Stock Quantity:</label>
-        <input type="number" id="stock_quantity" name="stock_quantity" required>
+                <div class="form-group">
+                    <label for="stock_quantity" class="form-label">
+                        <i class="fas fa-boxes"></i> Stock Quantity *
+                    </label>
+                    <input type="number" id="stock_quantity" name="stock_quantity" class="form-control" min="0"
+                        value="{% if book %}{{ book.stock_quantity }}{% else %}0{% endif %}" required>
+                </div>
+            </div>
 
-        <label for="isbn">ISBN:</label>
-        <input type="text" id="isbn" name="isbn" required>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="published_date" class="form-label">
+                        <i class="fas fa-calendar"></i> Published Date
+                    </label>
+                    <input type="date" id="published_date" name="published_date" class="form-control"
+                        value="{% if book.published_date %}{{ book.published_date|date:'Y-m-d' }}{% endif %}">
+                </div>
 
-        <label for="image">Image:</label>
-        <input type="file" id="image" name="image" required>
+                <div class="form-group">
+                    <label for="isbn" class="form-label">
+                        <i class="fas fa-barcode"></i> ISBN
+                    </label>
+                    <input type="text" id="isbn" name="isbn" class="form-control" placeholder="978-0-123456-47-2"
+                        value="{% if book %}{{ book.isbn }}{% endif %}">
+                </div>
+            </div>
 
-        <button id="add-book-button" type="submit">Add Book</button>
-    </form>
+            <div class="form-group">
+                <label for="image" class="form-label">
+                    <i class="fas fa-image"></i> Book Cover {% if not book %}*{% endif %}
+                </label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="image" name="image" class="file-input" accept="image/*" {% if not book %}required{% endif %}>
+                    <label for="image" class="file-input-label">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span class="file-text">
+                            {% if book and book.image %}
+                            Change book cover (current: {{ book.image.name|cut:"books/" }})
+                            {% else %}
+                            Choose book cover image
+                            {% endif %}
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary" id="submit-btn">
+                    <i class="fas fa-save"></i>
+                    <span class="btn-text">
+                        {% if is_edit %}Update Book{% else %}Add Book{% endif %}
+                    </span>
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}
 
 {% block extrajs %}
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const tabs = document.querySelectorAll(".tab-button");
-    const tabContents = document.querySelectorAll(".tab-content");
+    document.addEventListener("DOMContentLoaded", function () {
+        const tabs = document.querySelectorAll(".tab-button");
+        const tabContents = document.querySelectorAll(".tab-content");
+        const bookForm = document.getElementById("book-form");
+        const fileInput = document.getElementById("image");
+        const fileLabel = document.querySelector(".file-input-label");
+        const submitBtn = document.getElementById("submit-btn");
 
-    // Tab toggle
-    tabs.forEach(tab => {
-        tab.addEventListener("click", function () {
-            tabs.forEach(t => t.classList.remove("active"));
-            tabContents.forEach(c => c.classList.remove("active"));
-            tab.classList.add("active");
-            document.getElementById(tab.dataset.tab).classList.add("active");
+        // Delete modal elements
+        const deleteModal = document.getElementById("deleteConfirmModal");
+        const deleteBookTitle = document.getElementById("deleteBookTitle");
+        const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+        const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+
+        let currentBookToDelete = null;
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener("click", function () {
+                // Remove active class from all tabs and contents
+                tabs.forEach(t => t.classList.remove("active"));
+                tabContents.forEach(c => c.classList.remove("active"));
+
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add("active");
+                document.getElementById(tab.dataset.tab).classList.add("active");
+            });
         });
-    });
 
-    // AJAX Add Book
-    const addBookForm = document.getElementById("add-book-form");
-    addBookForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        const formData = new FormData(addBookForm);
+        // File input handling
+        if (fileInput && fileLabel) {
+            fileInput.addEventListener("change", function (e) {
+                const fileText = fileLabel.querySelector('.file-text');
+                if (e.target.files && e.target.files.length > 0) {
+                    const fileName = e.target.files[0].name;
+                    fileText.textContent = `Selected: ${fileName}`;
+                    fileLabel.classList.add('has-file');
+                } else {
+                    fileText.textContent = "Choose book cover image";
+                    fileLabel.classList.remove('has-file');
+                }
+            });
+        }
+
+        // Delete book functionality
+        document.querySelectorAll('.delete-book-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const bookId = this.dataset.bookId;
+                const bookTitle = this.dataset.bookTitle;
+
+                currentBookToDelete = bookId;
+                deleteBookTitle.textContent = bookTitle;
+                deleteModal.classList.add('active');
+            });
+        });
+
+        // Cancel delete
+        cancelDeleteBtn.addEventListener('click', function () {
+            deleteModal.classList.remove('active');
+            currentBookToDelete = null;
+        });
+
+        // Confirm delete
+        confirmDeleteBtn.addEventListener('click', function () {
+            if (!currentBookToDelete) return;
+
+            const deleteBtn = document.querySelector(`[data-book-id="${currentBookToDelete}"]`);
+            window.AdminUtils.setLoadingState(deleteBtn, true);
+
+            // Replace the hardcoded URL with this:
+            fetch("{% url 'ninamwrites_admin:delete_book' 0 %}".replace('0', currentBookToDelete), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    window.AdminUtils.setLoadingState(deleteBtn, false);
+                    deleteModal.classList.remove('active');
+
+                    if (data.success) {
+                        // Remove book from the list
+                        const bookRow = document.getElementById(`book-${currentBookToDelete}`);
+                        if (bookRow) {
+                            bookRow.style.opacity = '0';
+                            setTimeout(() => {
+                                bookRow.remove();
+
+                                // Check if no books left
+                                const booksList = document.getElementById('books-list');
+                                if (booksList && booksList.children.length === 0) {
+                                    booksList.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="fas fa-book-open"></i>
+                                    <h3>No books yet</h3>
+                                    <p>Start by adding your first book using the "Add Book" tab.</p>
+                                </div>
+                            `;
+                                }
+                            }, 300);
+                        }
+
+                        window.AdminUtils.showMessage('Book deleted successfully!', 'success');
+                    } else {
+                        window.AdminUtils.showMessage(data.error || 'Error deleting book', 'error');
+                    }
+                })
+                .catch(error => {
+                    window.AdminUtils.setLoadingState(deleteBtn, false);
+                    deleteModal.classList.remove('active');
+                    console.error('Error:', error);
+                    window.AdminUtils.showMessage('Network error. Please try again.', 'error');
+                });
+
+            currentBookToDelete = null;
+        });
+
+        // Close modal when clicking outside
+        deleteModal.addEventListener('click', function (e) {
+            if (e.target === deleteModal) {
+                deleteModal.classList.remove('active');
+                currentBookToDelete = null;
+            }
+        });
+
+        // Form submission
+        if (bookForm) {
+            bookForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(bookForm);
+                const isEdit = {{ is_edit| yesno: "true,false"
+            }};
+
+        // Show loading state
+        window.AdminUtils.setLoadingState(submitBtn, true);
 
         fetch("{% url 'ninamwrites_admin:add_book' %}", {
             method: "POST",
             body: formData,
-            headers: { "X-Requested-With": "XMLHttpRequest" }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const tbody = document.getElementById("books-list");
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${data.book.title}</td>
-                    <td>${data.book.author}</td>
-                    <td>AUD ${data.book.price}</td>
-                    <td>${data.book.isbn || ""}</td>
-                    <td>${data.book.published_date || ""}</td>
-                    <td>
-                        <a class="btn btn-sm btn-primary" href="${data.book.edit_url}">
-                            Edit
-                        </a>
-                    </td>`;
-                tbody.appendChild(tr);
-
-                // Switch back to Manage Books tab
-                document.querySelector('[data-tab="manage-books"]').click();
-                addBookForm.reset();
-            } else {
-                alert("Error: " + data.error);
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
             }
         })
-        .catch(error => console.error("Error:", error));
+            .then(response => response.json())
+            .then(data => {
+                window.AdminUtils.setLoadingState(submitBtn, false);
+
+                if (data.success) {
+                    window.AdminUtils.showMessage(
+                        isEdit ? "Book updated successfully!" : "Book added successfully!",
+                        'success'
+                    );
+
+                    if (!isEdit) {
+                        // Add new book to the list
+                        const booksList = document.getElementById("books-list");
+                        if (booksList) {
+                            const bookRow = document.createElement("div");
+                            bookRow.className = "book-row";
+                            bookRow.id = `book-${data.book.id}`;
+                            bookRow.innerHTML = `
+                                <div>${data.book.title}</div>
+                                <div>${data.book.author}</div>
+                                <div>$${data.book.price}</div>
+                                <div>${data.book.isbn || "—"}</div>
+                                <div>${data.book.published_date || "—"}</div>
+                                <div class="action-buttons">
+                                    <a class="btn btn-primary btn-sm" href="${data.book.edit_url}">
+                                        <i class="fas fa-edit"></i>
+                                        Edit
+                                    </a>
+                                    <button class="btn btn-danger btn-sm delete-book-btn" 
+                                            data-book-id="${data.book.id}"
+                                            data-book-title="${data.book.title}">
+                                        <i class="fas fa-trash"></i>
+                                        Delete
+                                    </button>
+                                </div>
+                            `;
+                            booksList.appendChild(bookRow);
+
+                            // Add event listener to the new delete button
+                            const newDeleteBtn = bookRow.querySelector('.delete-book-btn');
+                            newDeleteBtn.addEventListener('click', function () {
+                                const bookId = this.dataset.bookId;
+                                const bookTitle = this.dataset.bookTitle;
+
+                                currentBookToDelete = bookId;
+                                deleteBookTitle.textContent = bookTitle;
+                                deleteModal.classList.add('active');
+                            });
+                        }
+
+                        // Reset form and switch to manage books tab
+                        bookForm.reset();
+                        fileLabel.classList.remove('has-file');
+                        fileLabel.querySelector('.file-text').textContent = "Choose book cover image";
+                    }
+
+                    // Switch to manage books tab
+                    document.querySelector('[data-tab="manage-books"]').click();
+
+                } else {
+                    window.AdminUtils.showMessage(data.error || "An error occurred", 'error');
+                }
+            })
+            .catch(error => {
+                window.AdminUtils.setLoadingState(submitBtn, false);
+                console.error("Error:", error);
+                window.AdminUtils.showMessage("Network error. Please try again.", 'error');
+            });
     });
+    }
+
+    // Auto-switch to edit tab if editing
+    {% if is_edit %}
+    document.querySelector('[data-tab="add-book"]').click();
+    {% endif %}
 });
 </script>
 {% endblock %}
