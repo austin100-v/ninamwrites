@@ -1,69 +1,117 @@
 {% extends "ninamwrites_admin/base.html" %}
 {% block extrahead %}
 <style>
-    h1 {
-        font-family: 'Playfair Display', serif;
-        font-size: clamp(1rem, calc(1vw + 1rem), 2rem);
-        margin-bottom: 20px;
+    .page-title {
+        margin-bottom: 2rem;
     }
-    table {
-        width: 100%;
-        border-collapse: collapse;
+
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
     }
-    thead, tbody, td {
-        padding: 10px;
-        text-align: left;
+
+    .stat-card {
+        background: var(--surface-color);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow);
+        text-align: center;
+        border-left: 4px solid var(--primary-color);
     }
-    thead {
-        background-color: #1e3a8a;
-        color: white;
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
     }
-    tbody tr:nth-child(even) {
-        background-color: #f2f2f2;
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
     }
-    tbody tr:hover {
-        background-color: #ddd;
+
+    .order-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
     }
-    a {
-        color: #1e3a8a;
-    }
-    a:hover {
-        color: #2563eb;
-    }
+
+    .status-pending { background: #fef3c7; color: #d97706; }
+    .status-processing { background: #dbeafe; color: #2563eb; }
+    .status-completed { background: #dcfce7; color: #16a34a; }
+    .status-cancelled { background: #fee2e2; color: #dc2626; }
 </style>
 {% endblock %}
 
 {% block content %}
-<h1>View Orders</h1>
-<table>
-    <thead>
-        <tr>
-            <th>Order ID</th>
-            <th>Customer</th>
-            <th>Total Price</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for order in orders %}
-        <tr>
-            <td>{{ order.id }}</td>
-            <td>{{ order.customer.full_name }}</td>
-            <td>{{ order.total_price }}</td>
-            <td>{{ order.status }}</td>
-            <td><a href="{% url 'ninamwrites_admin:view_order' order.id %}">View</a></td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<a href="{% url 'ninamwrites_admin:view_orders' %}">View Orders</a>
-{% endblock %}
-{% block extrajs %}
-<script>
-    $(document).ready(function() {
-        $('.view-order').click(function() {
-            window.location.href = $(this).data('url');
-        });
-    });
-</script>
+<h1 class="page-title">
+    <i class="fas fa-shopping-cart"></i> Order Management
+</h1>
+
+<div class="stats-container">
+    <div class="stat-card">
+        <div class="stat-number">{{ orders|length }}</div>
+        <div class="stat-label">Total Orders</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ pending_orders|default:0 }}</div>
+        <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ completed_orders|default:0 }}</div>
+        <div class="stat-label">Completed</div>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="professional-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Total Price</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>#{{ order.id }}</td>
+                <td>
+                    <strong>{{ order.customer.full_name }}</strong>
+                    <br>
+                    <small class="text-secondary">{{ order.customer.email }}</small>
+                </td>
+                <td>${{ order.total_price }}</td>
+                <td>
+                    <span class="order-status status-{{ order.status|lower }}">
+                        {{ order.status }}
+                    </span>
+                </td>
+                <td>{{ order.created_at|date:"M d, Y" }}</td>
+                <td>
+                    <a href="{% url 'ninamwrites_admin:view_order' order.id %}" 
+                       class="btn btn-primary btn-sm">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center py-4">
+                    <i class="fas fa-shopping-cart fa-2x text-secondary mb-2"></i>
+                    <p class="text-secondary">No orders found</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}
