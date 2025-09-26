@@ -149,7 +149,7 @@ def edit_book(request, pk):
                 isbn = request.POST.get("isbn", "").strip()
                 image = request.FILES.get("image")
 
-                # Validation
+                # Validation (same as add_book)
                 if not all([title, author, price]):
                     return JsonResponse({
                         "success": False, 
@@ -175,16 +175,6 @@ def edit_book(request, pk):
                         "success": False, 
                         "error": "Invalid stock quantity format"
                     })
-
-                # Date validation
-                if published_date:
-                    try:
-                        datetime.strptime(published_date, '%Y-%m-%d')
-                    except ValueError:
-                        return JsonResponse({
-                            "success": False, 
-                            "error": "Invalid date format"
-                        })
 
                 # Update existing book
                 book.title = title
@@ -217,7 +207,6 @@ def edit_book(request, pk):
                     "error": f"An error occurred: {str(e)}"
                 })
 
-        # Handle regular form submission
         else:
             messages.success(request, "Book updated successfully!")
             return redirect("ninamwrites_admin:add_book")
@@ -261,16 +250,10 @@ def delete_book(request, pk):
                 messages.error(request, f"Error deleting book: {str(e)}")
                 return redirect("ninamwrites_admin:add_book")
     
-    # GET request should not delete - return error
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({
-            "success": False,
-            "error": "GET method not allowed for deletion"
-        })
-    else:
-        messages.error(request, "Invalid request method")
-        return redirect("ninamwrites_admin:add_book")
-
+    return JsonResponse({
+        "success": False,
+        "error": "Invalid request method"
+    })
 
 @staff_member_required
 @csrf_protect
@@ -365,7 +348,7 @@ def view_subscribers(request):
 @staff_member_required
 def view_testimonials(request):
     """View all testimonials"""
-    testimonials = Testimonial.objects.all().order_by('-date')
+    testimonials = Testimonial.objects.all().order_by('-created_at')
     return render(request, "ninamwrites_admin/view_testimonials.html", {"testimonials": testimonials})
 
 
