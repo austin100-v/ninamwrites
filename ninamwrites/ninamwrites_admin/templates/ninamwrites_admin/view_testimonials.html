@@ -35,32 +35,53 @@
 {% endblock %}
 
 {% block content %}
-<h1>View Testimonials</h1>
-<table>
-    <thead>
-        <tr>
-            <th>Author</th>
-            <th>Content</th>
-            <th>Rating</th>
-            <th>Date</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for testimonial in testimonials %}
-        <tr>
-            <td>{{ testimonial.author }}</td>
-            <td>{{ testimonial.content }}</td>
-            <td>{{ testimonial.rating }}</td>
-            <td>{{ testimonial.date }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<h1 class="page-title">
+    <i class="fas fa-star"></i>
+    Customer Testimonials
+</h1>
 
-{% endblock %}
-
-{% block extrajs %}
-<script>
-    
-</script>
+<div class="card">
+    {% if testimonials %}
+        <div class="table-container">
+            <table class="professional-table">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-user"></i> Author</th>
+                        <th><i class="fas fa-quote-left"></i> Content</th>
+                        <th><i class="fas fa-star"></i> Rating</th>
+                        <th><i class="fas fa-calendar"></i> Date</th>
+                        <th><i class="fas fa-toggle-on"></i> Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for testimonial in testimonials %}
+                    <tr>
+                        <td><strong>{{ testimonial.author }}</strong></td>
+                        <td>{{ testimonial.content|truncatechars:100 }}</td>
+                        <td>{{ testimonial.rating }}/5</td>
+                        <td>{{ testimonial.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            {% if testimonial.is_active %}
+                                <span style="color: var(--success-color);">
+                                    <i class="fas fa-check"></i> Active
+                                </span>
+                            {% else %}
+                                <span style="color: var(--secondary-color);">
+                                    <i class="fas fa-times"></i> Inactive
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-star"></i>
+            <h3>No testimonials yet</h3>
+            <p>Customer testimonials will appear here once they start leaving reviews.</p>
+        </div>
+    {% endif %}
+</div>
 {% endblock %}
