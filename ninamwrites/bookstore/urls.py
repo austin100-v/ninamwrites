@@ -28,9 +28,14 @@ urlpatterns = [
     path('cart/', views.cart, name='cart'),
     path("cart/update/<int:book_id>/", views.update_cart, name="update_cart"),
     path("cart/remove/<int:book_id>/", views.remove_from_cart, name="remove_from_cart"),
+    path('add-to-cart/', views.add_to_cart, name='add_to_cart'),
+    path('get-cart-count/', views.get_cart_count, name='get_cart_count'),
 
     # Checkout
     path('checkout/', views.checkout, name='checkout'),
+    path('create-payment-intent/', views.create_payment_intent, name='create_payment_intent'),
+    path('payment-success/', views.payment_success, name='payment_success'),
+    path('webhook/stripe/', views.stripe_webhook, name='stripe_webhook'),
 
     # Merch & Subscribe
     path('merch/', views.merchandise_view, name='merchandise'),

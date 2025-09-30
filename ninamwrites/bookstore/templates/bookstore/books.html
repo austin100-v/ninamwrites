@@ -5,8 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'bookstore/css/books.css' %}">
-<link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+
 {% endblock %}
 
 {% block content %}
@@ -21,9 +20,8 @@
     <h2>Featured Books</h2>
     <div class="book-list">
         {% for book in books %}
-        <div class="book-item" data-book-id="{{ book.id }}">
-            <img src="{{ book.image.url|default:'/static/bookstore/images/no-image.png' }}" alt="{{ book.title }}"
-                onerror="this.src='{% static 'bookstore/images/no-image.png' %}'" loading="lazy">
+        <div class="book-item" data-book-index="{{ forloop.counter0 }}" data-book-id="{{ book.id }}">
+            <img src="{{ book.image.url }}" alt="{{ book.title }}" loading="lazy">
             <h3>{{ book.title }}</h3>
             <p class="book-author">{{ book.author }}</p>
             <p class="book-date">
@@ -34,11 +32,7 @@
             <p class="book-price">${{ book.price|floatformat:2 }}</p>
 
             <div class="book-actions">
-                <button class="btn-details"
-                    data-image="{{ book.image.url|default:'/static/bookstore/images/no-image.png' }}"
-                    data-title="{{ book.title|escapejs }}" data-author="{{ book.author|escapejs }}"
-                    data-description="{{ book.description|escapejs }}" data-price="{{ book.price|floatformat:2 }}"
-                    data-published="{{ book.published_date|date:'M Y' }}">
+                <button class="btn-details" data-book-index="{{ forloop.counter0 }}">
                     View Details
                 </button>
 
@@ -56,40 +50,69 @@
     </div>
 </section>
 
-<!-- Improved Modal with Accessibility -->
-<div id="book-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-describedby="modal-description"
-    aria-hidden="true" style="display:none;">
+<!-- Enhanced Modal -->
+<div id="book-modal" class="modal" role="dialog" aria-labelledby="modal-title">
+    <button class="modal-nav modal-nav-prev" id="prevBook" aria-label="Previous book">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+
     <div class="modal-content" role="document">
-        <button class="close-btn" aria-label="Close modal" title="Close">&times;</button>
+        <div class="modal-header">
+            <h3 id="modal-title">Book Details</h3>
+            <button class="close-btn" aria-label="Close modal">&times;</button>
+        </div>
 
         <div class="modal-body">
-            <img id="modal-image" src="" alt="" style="max-width:200px; height:auto; margin-bottom: 15px;">
+            <div class="modal-image-section">
+                <img id="modal-image" src="" alt="">
+            </div>
 
-            <h3 id="modal-title"></h3>
-            <p class="modal-author" id="modal-author"></p>
-            <p class="modal-published" id="modal-published"></p>
-            <p class="modal-price" id="modal-price" style="font-weight: bold; color: #2c3e50;"></p>
-            <p id="modal-description"></p>
+            <div class="modal-info-section">
+                <h2 id="modal-book-title"></h2>
+                <p class="modal-author" id="modal-author"></p>
+                <p class="modal-published" id="modal-published"></p>
+                <div class="modal-price" id="modal-price"></div>
+                <div class="modal-description" id="modal-description"></div>
 
-            <div class="modal-actions" style="margin-top: 20px;">
-                <button class="btn-add-cart-modal" id="modal-add-cart">
-                    <span class="btn-text">Add to Cart</span>
-                    <div class="loading-spinner"></div>
-                </button>
+                <div class="modal-actions">
+                    <button class="btn-add-cart-modal" id="modal-add-cart">
+                        <span class="btn-text">Add to Cart</span>
+                        <div class="loading-spinner"></div>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
+    <button class="modal-nav modal-nav-next" id="nextBook" aria-label="Next book">
+        <i class="fas fa-chevron-right"></i>
+    </button>
 </div>
 
-<!-- CSRF Token for AJAX requests -->
 {% csrf_token %}
 
 <script>
+    // Store books data for modal navigation
+    const booksData = [
+        {% for book in books %}
+        {
+            id: {{ book.id }},
+            title: "{{ book.title|escapejs }}",
+            author: "{{ book.author|escapejs }}",
+            description: "{{ book.description|escapejs }}",
+            price: "{{ book.price|floatformat:2 }}",
+            published: "{{ book.published_date|date:'M Y' }}",
+            image: "{{ book.image.url }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
     class BookStore {
         constructor() {
             this.modal = document.getElementById('book-modal');
-            this.currentBookId = null;
+            this.currentBookIndex = 0;
             this.init();
+            this.updateCartBadge();
         }
 
         init() {
@@ -100,147 +123,115 @@
         attachEventListeners() {
             // View Details buttons
             document.querySelectorAll('.btn-details').forEach(btn => {
-                btn.addEventListener('click', (e) => this.showDetails(e.target));
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.dataset.bookIndex);
+                    this.showDetails(index);
+                });
             });
 
-            // Add to Cart buttons (main list)
+            // Add to Cart buttons
             document.querySelectorAll('.btn-add-cart').forEach(btn => {
-                btn.addEventListener('click', (e) => this.addToCart(e.target));
+                btn.addEventListener('click', (e) => this.addToCart(e.currentTarget));
             });
 
-            // Modal close button
-            const closeBtn = document.querySelector('.close-btn');
+            // Modal close
+            const closeBtn = this.modal.querySelector('.close-btn');
             if (closeBtn) {
                 closeBtn.addEventListener('click', () => this.closeModal());
             }
 
-            // Modal background click to close
+            // Modal background click
             this.modal.addEventListener('click', (e) => {
                 if (e.target === this.modal) {
                     this.closeModal();
                 }
             });
 
-            // Modal Add to Cart button
+            // Modal Add to Cart - FIXED
             const modalAddBtn = document.getElementById('modal-add-cart');
             if (modalAddBtn) {
                 modalAddBtn.addEventListener('click', () => {
-                    if (this.currentBookId) {
-                        this.addToCart(modalAddBtn, this.currentBookId);
+                    if (this.currentBookIndex !== null) {
+                        const book = booksData[this.currentBookIndex];
+                        // Create a temporary button object with the correct data
+                        const tempBtn = {
+                            dataset: {
+                                bookId: book.id,
+                                title: book.title
+                            },
+                            querySelector: (selector) => modalAddBtn.querySelector(selector),
+                            classList: modalAddBtn.classList,
+                            disabled: false
+                        };
+                        this.addToCart(tempBtn);
                     }
                 });
             }
+
+            // Navigation buttons
+            document.getElementById('prevBook').addEventListener('click', () => this.navigateBook(-1));
+            document.getElementById('nextBook').addEventListener('click', () => this.navigateBook(1));
         }
 
         addKeyboardNavigation() {
-            // Escape key to close modal
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && this.modal.style.display === 'flex') {
-                    this.closeModal();
-                }
-            });
-
-            // Tab trapping in modal
-            this.modal.addEventListener('keydown', (e) => {
-                if (e.key === 'Tab') {
-                    this.trapFocus(e);
+                if (this.modal.classList.contains('active')) {
+                    if (e.key === 'Escape') {
+                        this.closeModal();
+                    } else if (e.key === 'ArrowLeft') {
+                        this.navigateBook(-1);
+                    } else if (e.key === 'ArrowRight') {
+                        this.navigateBook(1);
+                    }
                 }
             });
         }
 
-        trapFocus(e) {
-            const focusableElements = this.modal.querySelectorAll(
-                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-            );
-            const firstElement = focusableElements[0];
-            const lastElement = focusableElements[focusableElements.length - 1];
+        showDetails(index) {
+            this.currentBookIndex = index;
+            const book = booksData[index];
 
-            if (e.shiftKey) {
-                if (document.activeElement === firstElement) {
-                    lastElement.focus();
-                    e.preventDefault();
-                }
-            } else {
-                if (document.activeElement === lastElement) {
-                    firstElement.focus();
-                    e.preventDefault();
-                }
-            }
+            document.getElementById('modal-image').src = book.image;
+            document.getElementById('modal-image').alt = book.title;
+            document.getElementById('modal-book-title').textContent = book.title;
+            document.getElementById('modal-author').textContent = `by ${book.author}`;
+            document.getElementById('modal-published').textContent = `Published: ${book.published}`;
+            document.getElementById('modal-price').textContent = `$${book.price}`;
+            document.getElementById('modal-description').textContent = book.description;
+
+            this.modal.classList.add('active');
+            this.modal.setAttribute('aria-hidden', 'false');
         }
 
-        showDetails(button) {
-            try {
-                // Get data from button attributes
-                const imageUrl = button.dataset.image || '';
-                const title = button.dataset.title || '';
-                const author = button.dataset.author || '';
-                const description = button.dataset.description || '';
-                const price = button.dataset.price || '';
-                const published = button.dataset.published || '';
-
-                // Get book ID from parent element
-                const bookItem = button.closest('.book-item');
-                this.currentBookId = bookItem ? bookItem.dataset.bookId : null;
-
-                // Update modal content
-                document.getElementById('modal-image').src = imageUrl;
-                document.getElementById('modal-image').alt = title;
-                document.getElementById('modal-title').textContent = title;
-                document.getElementById('modal-author').textContent = `by ${author}`;
-                document.getElementById('modal-published').textContent = `Published: ${published}`;
-                document.getElementById('modal-price').textContent = `$${price}`;
-                document.getElementById('modal-description').textContent = description;
-
-                // Update modal Add to Cart button
-                const modalAddBtn = document.getElementById('modal-add-cart');
-                if (modalAddBtn && this.currentBookId) {
-                    modalAddBtn.dataset.bookId = this.currentBookId;
-                    modalAddBtn.dataset.title = title;
-                }
-
-                // Show modal
-                this.modal.style.display = 'flex';
-                this.modal.setAttribute('aria-hidden', 'false');
-
-                // Focus on close button for accessibility
-                const closeBtn = this.modal.querySelector('.close-btn');
-                if (closeBtn) {
-                    closeBtn.focus();
-                }
-
-            } catch (error) {
-                console.error('Error showing book details:', error);
-                this.showMessage('Error loading book details', 'error');
-            }
+        navigateBook(direction) {
+            this.currentBookIndex = (this.currentBookIndex + direction + booksData.length) % booksData.length;
+            this.showDetails(this.currentBookIndex);
         }
 
         closeModal() {
-            this.modal.style.display = 'none';
+            this.modal.classList.remove('active');
             this.modal.setAttribute('aria-hidden', 'true');
-            this.currentBookId = null;
         }
 
-        async addToCart(button, bookId = null) {
+        async addToCart(button) {
             try {
-                // Get book ID and title
-                const id = bookId || button.dataset.bookId;
-                const title = button.dataset.title || 'Book';
+                const bookId = button.dataset.bookId;
+                const title = button.dataset.title;
 
-                if (!id) {
+                console.log('Adding to cart - Book ID:', bookId, 'Title:', title); // Debug log
+
+                if (!bookId) {
                     throw new Error('Book ID not found');
                 }
 
-                // Show loading state
                 this.setLoadingState(button, true);
 
-                // Get CSRF token
                 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
 
                 if (!csrfToken) {
                     throw new Error('CSRF token not found');
                 }
 
-                // Make AJAX request to add to cart
                 const response = await fetch('/add-to-cart/', {
                     method: 'POST',
                     headers: {
@@ -248,21 +239,16 @@
                         'X-CSRFToken': csrfToken,
                     },
                     body: JSON.stringify({
-                        book_id: id,
+                        book_id: parseInt(bookId),  // Ensure it's a number
                         quantity: 1
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
                 const data = await response.json();
 
                 if (data.success) {
-                    this.showMessage(`"${title}" added to cart!`, 'success');
-                    // Update cart count if you have one
-                    this.updateCartCount(data.cart_count);
+                    this.showMessage(data.message || 'Added to cart!', 'success');
+                    this.updateCartBadge(data.cart_count);
                 } else {
                     throw new Error(data.message || 'Failed to add to cart');
                 }
@@ -271,41 +257,36 @@
                 console.error('Error adding to cart:', error);
                 this.showMessage(error.message || 'Failed to add to cart', 'error');
             } finally {
-                // Remove loading state
                 this.setLoadingState(button, false);
             }
         }
 
         setLoadingState(button, loading) {
-            const spinner = button.querySelector('.loading-spinner');
-            const text = button.querySelector('.btn-text');
+            const spinner = button.querySelector ? button.querySelector('.loading-spinner') : null;
+            const text = button.querySelector ? button.querySelector('.btn-text') : null;
 
             if (loading) {
-                button.classList.add('btn-disabled');
-                button.disabled = true;
+                if (button.classList) button.classList.add('loading');
+                if (typeof button.disabled !== 'undefined') button.disabled = true;
                 if (spinner) spinner.style.display = 'block';
                 if (text) text.style.display = 'none';
             } else {
-                button.classList.remove('btn-disabled');
-                button.disabled = false;
+                if (button.classList) button.classList.remove('loading');
+                if (typeof button.disabled !== 'undefined') button.disabled = false;
                 if (spinner) spinner.style.display = 'none';
                 if (text) text.style.display = 'inline';
             }
         }
 
         showMessage(message, type = 'success') {
-            // Remove existing messages
             document.querySelectorAll('.success-message, .error-message').forEach(el => el.remove());
 
-            // Create message element
             const messageEl = document.createElement('div');
             messageEl.className = type === 'success' ? 'success-message' : 'error-message';
-            messageEl.textContent = message;
-            messageEl.style.backgroundColor = type === 'success' ? '#4CAF50' : '#f44336';
+            messageEl.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
 
             document.body.appendChild(messageEl);
 
-            // Auto remove after 3 seconds
             setTimeout(() => {
                 if (messageEl.parentNode) {
                     messageEl.parentNode.removeChild(messageEl);
@@ -313,11 +294,22 @@
             }, 3000);
         }
 
-        updateCartCount(count) {
-            // Update cart count in navigation if you have one
-            const cartCountEl = document.querySelector('.cart-count');
-            if (cartCountEl) {
-                cartCountEl.textContent = count;
+        async updateCartBadge(count = null) {
+            if (count === null) {
+                try {
+                    const response = await fetch('/get-cart-count/');
+                    const data = await response.json();
+                    count = data.cart_count;
+                } catch (error) {
+                    console.error('Error fetching cart count:', error);
+                    return;
+                }
+            }
+
+            const badge = document.getElementById('cart-count');
+            if (badge) {
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'block' : 'none';
             }
         }
     }
@@ -326,14 +318,5 @@
     document.addEventListener('DOMContentLoaded', () => {
         new BookStore();
     });
-
-    // Legacy functions for backward compatibility (if needed)
-    function showDetails(imageUrl, title, description) {
-        console.warn('showDetails() is deprecated. Please use the new BookStore class.');
-    }
-
-    function closeModal() {
-        console.warn('closeModal() is deprecated. Please use the new BookStore class.');
-    }
 </script>
 {% endblock %}

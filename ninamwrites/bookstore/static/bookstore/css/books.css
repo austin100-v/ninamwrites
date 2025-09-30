@@ -5,10 +5,12 @@
     padding: 40px 20px;
     text-align: center;
 }
+
 .book-header h1 {
     font-size: 2.5rem;
     margin-bottom: 10px;
 }
+
 .book-header p {
     font-size: 1.2rem;
     max-width: 600px;
@@ -45,62 +47,151 @@
 
 /* Modal improvements */
 .modal {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
     justify-content: center;
     align-items: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .modal-content {
     background: white;
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 500px;
-    max-height: 80vh;
+    padding: 0;
+    border-radius: 12px;
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
     overflow-y: auto;
     position: relative;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
 }
 
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 24px;
-    cursor: pointer;
-    color: #666;
-}
-
-.close-btn:hover {
-    color: #000;
-}
-
-/* Success message styles */
-.success-message {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #4CAF50;
-    color: white;
-    padding: 15px 20px;
-    border-radius: 4px;
-    z-index: 1001;
-    animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
+@keyframes slideUp {
     from {
-        transform: translateX(100%);
+        transform: translateY(50px);
+        opacity: 0;
     }
 
     to {
-        transform: translateX(0);
+        transform: translateY(0);
+        opacity: 1;
     }
 }
+
+.modal-header {
+    position: sticky;
+    top: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 2rem;
+}
+
+.modal-image-section {
+    text-align: center;
+}
+
+.modal-image-section img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.modal-info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.modal-price {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.modal-author {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.modal-published {
+    color: #999;
+    font-size: 0.9rem;
+}
+
+.modal-description {
+    line-height: 1.6;
+    color: #333;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: auto;
+    padding-top: 1.5rem;
+}
+
 
 .books {
     padding: 40px 5%;
@@ -116,14 +207,14 @@
     background: #fff;
     border-radius: 12px;
     padding: 15px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
     text-align: center;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .book-item:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
 }
 
 .book-item img {
@@ -134,8 +225,7 @@
     margin-bottom: 10px;
 }
 
-.book-actions button,
-.btn-add-cart-modal {
+.book-actions button {
     padding: 10px 15px;
     border: none;
     border-radius: 6px;
@@ -150,42 +240,140 @@
     margin-right: 10px;
 }
 
-.btn-add-cart,
-.btn-add-cart-modal {
+.btn-add-cart {
     background: #27ae60;
     color: white;
 }
 
-.book-actions button:hover,
-.btn-add-cart-modal:hover {
+.book-actions button:hover {
     opacity: 0.9;
     transform: scale(1.02);
 }
 
-.modal-content {
-    width: 90%;
-    max-width: 500px;
-    border-radius: 12px;
-    padding: 20px;
+
+.btn-add-cart-modal {
+    flex: 1;
+    padding: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.modal-body {
+.btn-add-cart-modal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Navigation Buttons */
+.modal-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    text-align: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #667eea;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.modal-nav:hover {
+    background: white;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.modal-nav-prev {
+    left: -25px;
+}
+
+.modal-nav-next {
+    right: -25px;
+}
+
+
+/* Loading and success states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.success-message,
+.error-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    z-index: 10000;
+    animation: slideInRight 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.success-message {
+    background: #28a745;
+}
+
+.error-message {
+    background: #dc3545;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 @media (max-width: 768px) {
     .header-content h1 {
         font-size: 1.8rem;
     }
+
     .book-item {
         padding: 10px;
     }
+
     .book-actions {
         display: flex;
         flex-direction: column;
         gap: 8px;
+    }
+
+    .modal-body {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-nav {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .modal-nav-prev {
+        left: 10px;
+    }
+
+    .modal-nav-next {
+        right: 10px;
     }
 }

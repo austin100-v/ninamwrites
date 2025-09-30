@@ -3,11 +3,16 @@ from django.contrib import messages, admin
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
-from .models import Testimonial, Order, Book, Merchandise, NewsletterSubscriber # assuming you track purchases via an Order model
+from .models import Testimonial, Order, Book, Merchandise, NewsletterSubscriber, Cart, CartItem, Customer # assuming you track purchases via an Order model
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.mail import send_mail
+import stripe
+from django.conf import settings
+import json
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 # views.py
 def auth_view(request):
@@ -157,11 +162,233 @@ def contact(request):
     return render(request, "bookstore/contact.html")
 
 
+
+
+def get_or_create_cart(request):
+    """Get or create cart for user (session-based or database-based)"""
+    if request.user.is_authenticated:
+        # Database cart for authenticated users
+        try:
+            customer = Customer.objects.get(email=request.user.email)
+            cart, created = Cart.objects.get_or_create(customer=customer)
+            return cart
+        except Customer.DoesNotExist:
+            pass
+    
+    # Session cart for anonymous users
+    if 'cart' not in request.session:
+        request.session['cart'] = {}
+    return None  # We'll use session
+
+
+@require_POST
+def add_to_cart(request):
+    """Add book to cart"""
+    try:
+        data = json.loads(request.body)
+        book_id = data.get('book_id')
+        quantity = int(data.get('quantity', 1))
+        
+        print(f"Received book_id: {book_id}, quantity: {quantity}")  # Debug
+        
+        book = Book.objects.get(id=book_id)
+        
+        if request.user.is_authenticated:
+            # Database cart - Create customer if doesn't exist
+            customer, created = Customer.objects.get_or_create(
+                email=request.user.email,
+                defaults={
+                    'first_name': request.user.first_name or request.user.username,
+                    'last_name': request.user.last_name or '',
+                    'password': 'set_via_django_auth'  # Placeholder
+                }
+            )
+            
+            cart, _ = Cart.objects.get_or_create(customer=customer)
+            cart_item, created = CartItem.objects.get_or_create(
+                cart=cart,
+                book=book,
+                defaults={'quantity': quantity}
+            )
+            if not created:
+                cart_item.quantity += quantity
+                cart_item.save()
+            
+            cart_count = sum(item.quantity for item in cart.items.all())
+        else:
+            # Session cart
+            cart = request.session.get('cart', {})
+            book_id_str = str(book_id)
+            
+            if book_id_str in cart:
+                cart[book_id_str] += quantity
+            else:
+                cart[book_id_str] = quantity
+            
+            request.session['cart'] = cart
+            request.session.modified = True
+            cart_count = sum(cart.values())
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'{book.title} added to cart',
+            'cart_count': cart_count
+        })
+        
+    except Book.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Book not found'}, status=404)
+    except Exception as e:
+        print(f"Error in add_to_cart: {str(e)}")  # Debug
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+def get_cart_count(request):
+    """Get cart item count"""
+    if request.user.is_authenticated:
+        try:
+            customer = Customer.objects.get(email=request.user.email)
+            cart = Cart.objects.filter(customer=customer).first()
+            count = cart.total_items if cart else 0
+        except Customer.DoesNotExist:
+            count = 0
+    else:
+        cart = request.session.get('cart', {})
+        count = sum(cart.values())
+    
+    return JsonResponse({'cart_count': count})
+
+
 def cart(request):
-    return render(request, 'bookstore/cart.html')
+    """Display cart page"""
+    cart_items = []
+    total_price = 0
+    
+    if request.user.is_authenticated:
+        try:
+            customer = Customer.objects.get(email=request.user.email)
+            cart_obj = Cart.objects.filter(customer=customer).first()
+            if cart_obj:
+                cart_items = cart_obj.items.all()
+                total_price = cart_obj.total_price
+        except Customer.DoesNotExist:
+            pass
+    else:
+        # Session cart
+        cart = request.session.get('cart', {})
+        for book_id, qty in cart.items():
+            try:
+                book = Book.objects.get(id=book_id)
+                cart_items.append({
+                    'book': book,
+                    'quantity': qty,
+                    'total': book.price * qty
+                })
+                total_price += book.price * qty
+            except Book.DoesNotExist:
+                pass
+    
+    return render(request, 'bookstore/cart.html', {
+        'cart_items': cart_items,
+        'total_price': total_price
+    })
+
+# Initialize Stripe
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
 
 def checkout(request):
-    return render(request, 'bookstore/checkout.html')
+    """Checkout page view"""
+    # Calculate cart totals (adjust based on your cart logic)
+    cart_items = request.session.get('cart', [])
+    cart_total = sum(item['price'] * item['quantity'] for item in cart_items)
+    cart_tax = cart_total * 0.10  # 10% tax
+    shipping = 5.00
+    cart_grand_total = cart_total + cart_tax + shipping
+    
+    context = {
+        'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
+        'cart_total': cart_total,
+        'cart_tax': cart_tax,
+        'cart_grand_total': cart_grand_total,
+    }
+    return render(request, 'bookstore/checkout.html', context)
+
+
+@require_POST
+def create_payment_intent(request):
+    """Create Stripe Payment Intent"""
+    try:
+        data = json.loads(request.body)
+        amount = float(data.get('amount', 0))
+        
+        # Convert to cents (Stripe uses smallest currency unit)
+        amount_cents = int(amount * 100)
+        
+        # Create Payment Intent
+        intent = stripe.PaymentIntent.create(
+            amount=amount_cents,
+            currency='usd',
+            metadata={
+                'customer_name': data.get('name'),
+                'customer_email': data.get('email'),
+                'shipping_address': f"{data.get('address')}, {data.get('city')}, {data.get('state')} {data.get('zip')}"
+            }
+        )
+        
+        return JsonResponse({
+            'clientSecret': intent.client_secret
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+def payment_success(request):
+    """Payment success page"""
+    payment_intent_id = request.GET.get('payment_intent')
+    paypal_order_id = request.GET.get('paypal_order_id')
+    
+    if payment_intent_id:
+        # Verify payment with Stripe
+        try:
+            intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+            if intent.status == 'succeeded':
+                # Clear cart and create order
+                # Your order creation logic here
+                request.session['cart'] = []
+                
+                context = {
+                    'payment_id': payment_intent_id,
+                    'amount': intent.amount / 100,  # Convert from cents
+                }
+                return render(request, 'bookstore/payment_success.html', context)
+        except Exception as e:
+            return render(request, 'bookstore/payment_error.html', {'error': str(e)})
+    
+    return render(request, 'bookstore/payment_error.html')
+
+
+@csrf_exempt
+def stripe_webhook(request):
+    """Handle Stripe webhooks"""
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError:
+        return JsonResponse({'error': 'Invalid payload'}, status=400)
+    except stripe.error.SignatureVerificationError:
+        return JsonResponse({'error': 'Invalid signature'}, status=400)
+    
+    # Handle the event
+    if event['type'] == 'payment_intent.succeeded':
+        payment_intent = event['data']['object']
+        # Handle successful payment
+        # Create order, send confirmation email, etc.
+    
+    return JsonResponse({'status': 'success'})
 
 def privacy_policy(request):
     return render(request, 'bookstore/privacy_policy.html')

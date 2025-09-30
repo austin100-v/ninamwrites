@@ -2,9 +2,118 @@
 {% load static %}
 
 {% block title %}Checkout{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'bookstore/css/checkout.css' %}">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+<style>
+    .payment-method-selector {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .payment-option {
+        flex: 1;
+        padding: 1.5rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .payment-option:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+    }
+    
+    .payment-option.active {
+        border-color: #667eea;
+        background: #f8f9ff;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    }
+    
+    .payment-option input[type="radio"] {
+        display: none;
+    }
+    
+    .payment-option i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: #667eea;
+    }
+    
+    .payment-section {
+        display: none;
+    }
+    
+    .payment-section.active {
+        display: block;
+    }
+    
+    #card-element {
+        border: 1px solid #e0e0e0;
+        padding: 12px;
+        border-radius: 4px;
+        background: white;
+        margin-bottom: 1rem;
+    }
+    
+    #card-errors {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+    
+    .processing {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    
+    .spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-left: 0.5rem;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .order-summary {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .order-summary h3 {
+        margin-top: 0;
+        color: #333;
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        padding: 0.5rem 0;
+    }
+    
+    .summary-row.total {
+        font-weight: bold;
+        font-size: 1.2rem;
+        border-top: 2px solid #dee2e6;
+        padding-top: 1rem;
+        margin-top: 1rem;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -14,44 +123,298 @@
         <p>Complete your purchase by providing your shipping and payment details.</p>
     </div>
 </header>
+
 <section class="checkout">
-    <form method="post" action="{% url 'bookstore:checkout' %}">
-        {% csrf_token %}
-        <h2>Shipping Information</h2>
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required>
+    <div class="container">
+        <!-- Order Summary -->
+        <div class="order-summary">
+            <h3>Order Summary</h3>
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <span id="subtotal">${{ cart_total|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping:</span>
+                <span id="shipping">$5.00</span>
+            </div>
+            <div class="summary-row">
+                <span>Tax (10%):</span>
+                <span id="tax">${{ cart_tax|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row total">
+                <span>Total:</span>
+                <span id="total">${{ cart_grand_total|floatformat:2 }}</span>
+            </div>
+        </div>
 
-        <label for="address">Address:</label>
-        <input type="text" id="address" name="address" required>
+        <form id="payment-form">
+            {% csrf_token %}
+            
+            <!-- Shipping Information -->
+            <h2>Shipping Information</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="address">Street Address *</label>
+                <input type="text" id="address" name="address" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="city">City *</label>
+                    <input type="text" id="city" name="city" required>
+                </div>
+                <div class="form-group">
+                    <label for="state">State *</label>
+                    <input type="text" id="state" name="state" required>
+                </div>
+                <div class="form-group">
+                    <label for="zip">Zip Code *</label>
+                    <input type="text" id="zip" name="zip" required>
+                </div>
+            </div>
 
-        <label for="city">City:</label>
-        <input type="text" id="city" name="city" required>
+            <!-- Payment Method Selection -->
+            <h2>Payment Method</h2>
+            <div class="payment-method-selector">
+                <label class="payment-option active">
+                    <input type="radio" name="payment_method" value="stripe" checked>
+                    <i class="fab fa-cc-stripe"></i>
+                    <div>Credit/Debit Card</div>
+                    <small>Secure payment via Stripe</small>
+                </label>
+                
+                <label class="payment-option">
+                    <input type="radio" name="payment_method" value="paypal">
+                    <i class="fab fa-paypal"></i>
+                    <div>PayPal</div>
+                    <small>Pay with PayPal account</small>
+                </label>
+            </div>
 
-        <label for="state">State:</label>
-        <input type="text" id="state" name="state" required>
+            <!-- Stripe Payment Section -->
+            <div class="payment-section active" id="stripe-section">
+                <h3>Card Details</h3>
+                <div id="card-element">
+                    <!-- Stripe Card Element will be inserted here -->
+                </div>
+                <div id="card-errors" role="alert"></div>
+            </div>
 
-        <label for="zip">Zip Code:</label>
-        <input type="text" id="zip" name="zip" required>
+            <!-- PayPal Payment Section -->
+            <div class="payment-section" id="paypal-section">
+                <h3>PayPal Payment</h3>
+                <div id="paypal-button-container"></div>
+                <p class="text-muted">You'll be redirected to PayPal to complete your payment securely.</p>
+            </div>
 
-        <h2>Payment Information</h2>
-        <label for="card_number">Card Number:</label>
-        <input type="text" id="card_number" name="card_number" required>
-
-        <label for="expiry_date">Expiry Date:</label>
-        <input type="text" id="expiry_date" name="expiry_date" placeholder="MM/YY" required>
-
-        <label for="cvv">CVV:</label>
-        <input type="text" id="cvv" name="cvv" required>
-
-        <button type="submit">Complete Purchase</button>
-
-
-    </form>
-    <div class="alternative-payment">
-        <button type="button">
-            <i class="fab fa-paypal"></i>
-        </button>
-        <button>Pay with M-Pesa</button>
+            <button type="submit" id="submit-button" class="btn-primary">
+                <span id="button-text">Complete Purchase</span>
+                <span id="spinner" class="spinner" style="display:none;"></span>
+            </button>
+        </form>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
+<!-- PayPal SDK (optional) -->
+<script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&currency=USD"></script>
+
+<script>
+    // Initialize Stripe
+    const stripe = Stripe('{{ stripe_public_key }}');
+    const elements = stripe.elements();
+    
+    // Create card element
+    const cardElement = elements.create('card', {
+        style: {
+            base: {
+                fontSize: '16px',
+                color: '#32325d',
+                fontFamily: '"Open Sans", sans-serif',
+                '::placeholder': {
+                    color: '#aab7c4'
+                }
+            },
+            invalid: {
+                color: '#dc3545',
+                iconColor: '#dc3545'
+            }
+        }
+    });
+    
+    cardElement.mount('#card-element');
+    
+    // Handle card validation errors
+    cardElement.on('change', function(event) {
+        const displayError = document.getElementById('card-errors');
+        if (event.error) {
+            displayError.textContent = event.error.message;
+        } else {
+            displayError.textContent = '';
+        }
+    });
+
+    // Payment method switching
+    const paymentOptions = document.querySelectorAll('.payment-option');
+    const paymentSections = document.querySelectorAll('.payment-section');
+    
+    paymentOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const method = this.querySelector('input').value;
+            
+            // Update active states
+            paymentOptions.forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show relevant payment section
+            paymentSections.forEach(section => section.classList.remove('active'));
+            document.getElementById(`${method}-section`).classList.add('active');
+        });
+    });
+
+    // Form submission
+    const form = document.getElementById('payment-form');
+    const submitButton = document.getElementById('submit-button');
+    const buttonText = document.getElementById('button-text');
+    const spinner = document.getElementById('spinner');
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+        
+        if (paymentMethod === 'stripe') {
+            await handleStripePayment();
+        } else if (paymentMethod === 'paypal') {
+            handlePayPalPayment();
+        }
+    });
+
+    async function handleStripePayment() {
+        setLoading(true);
+        
+        try {
+            // Create payment intent on server
+            const response = await fetch('{% url "bookstore:create_payment_intent" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    amount: {{ cart_grand_total|floatformat:2 }},
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    address: document.getElementById('address').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    zip: document.getElementById('zip').value
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                showError(data.error);
+                setLoading(false);
+                return;
+            }
+            
+            // Confirm payment with Stripe
+            const { error, paymentIntent } = await stripe.confirmCardPayment(
+                data.clientSecret,
+                {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: document.getElementById('name').value,
+                            email: document.getElementById('email').value,
+                            address: {
+                                line1: document.getElementById('address').value,
+                                city: document.getElementById('city').value,
+                                state: document.getElementById('state').value,
+                                postal_code: document.getElementById('zip').value
+                            }
+                        }
+                    }
+                }
+            );
+            
+            if (error) {
+                showError(error.message);
+                setLoading(false);
+            } else {
+                // Payment successful
+                if (paymentIntent.status === 'succeeded') {
+                    // Redirect to success page
+                    window.location.href = `{% url "bookstore:payment_success" %}?payment_intent=${paymentIntent.id}`;
+                }
+            }
+        } catch (error) {
+            console.error('Payment error:', error);
+            showError('An error occurred. Please try again.');
+            setLoading(false);
+        }
+    }
+
+    function handlePayPalPayment() {
+        // PayPal integration
+        alert('PayPal payment coming soon!');
+    }
+
+    function setLoading(loading) {
+        if (loading) {
+            submitButton.disabled = true;
+            submitButton.classList.add('processing');
+            spinner.style.display = 'inline-block';
+            buttonText.textContent = 'Processing...';
+        } else {
+            submitButton.disabled = false;
+            submitButton.classList.remove('processing');
+            spinner.style.display = 'none';
+            buttonText.textContent = 'Complete Purchase';
+        }
+    }
+
+    function showError(message) {
+        const errorElement = document.getElementById('card-errors');
+        errorElement.textContent = message;
+        setTimeout(() => {
+            errorElement.textContent = '';
+        }, 5000);
+    }
+
+    // PayPal Buttons (optional)
+    if (typeof paypal !== 'undefined') {
+        paypal.Buttons({
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: '{{ cart_grand_total|floatformat:2 }}'
+                        }
+                    }]
+                });
+            },
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    window.location.href = `{% url "bookstore:payment_success" %}?paypal_order_id=${data.orderID}`;
+                });
+            }
+        }).render('#paypal-button-container');
+    }
+</script>
 {% endblock %}

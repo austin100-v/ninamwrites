@@ -51,8 +51,22 @@
                 {% endif %}
 
                 <li>
-                    <a href="{% url 'bookstore:cart' %}" class="cart-btn">
+                    <a href="{% url 'bookstore:cart' %}" class="cart-btn" style="position: relative;">
                         <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cart-count" style="
+                            position: absolute;
+                            top: -8px;
+                            right: -8px;
+                            background: #dc3545;
+                            color: white;
+                            border-radius: 50%;
+                            padding: 2px 6px;
+                            font-size: 12px;
+                            font-weight: bold;
+                            display: none;
+                            min-width: 20px;
+                            text-align: center;
+                        ">0</span>
                     </a>
                 </li>
             </ul>
@@ -150,6 +164,23 @@
             return cookieValue;
         }
         const csrftoken = getCookie('csrftoken');
+        document.addEventListener('DOMContentLoaded', function () {
+            updateCartBadge();
+        });
+
+        async function updateCartBadge() {
+            try {
+                const response = await fetch('/get-cart-count/');
+                const data = await response.json();
+                const badge = document.getElementById('cart-count');
+                if (badge) {
+                    badge.textContent = data.cart_count;
+                    badge.style.display = data.cart_count > 0 ? 'block' : 'none';
+                }
+            } catch (error) {
+                console.error('Error updating cart badge:', error);
+            }
+        }
     </script>
     {% endblock %}
 </body>

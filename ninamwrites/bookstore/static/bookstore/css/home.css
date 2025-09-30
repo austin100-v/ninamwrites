@@ -175,8 +175,9 @@ header p {
 .testimonials {
     text-align: center;
     padding: 40px 20px;
-    background: #fafafa;
+    background: #9a81747a;
     border-top: 1px solid #eee;
+    width: 100%;
 }
 
 .testimonial-wrapper {
@@ -210,16 +211,18 @@ header p {
 }
 
 .prev, .next {
-    background: #9a8174;
+    background: none;
     border: none;
     font-size: 1.8rem;
     cursor: pointer;
-    color: #fff;
-    border-radius: 75%;
+    color: #000;
+    border-radius: 50%;
     padding: 10px;
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
 }
 
 .prev { left: -50px; }
