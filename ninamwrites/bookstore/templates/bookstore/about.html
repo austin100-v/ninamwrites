@@ -15,26 +15,23 @@
         <p>Discover the story behind my passion for storytelling and poetry.</p>
     </div>
 </header>
-<section class="about">
-    <div class="about-content">
-        <h1>About Nina M. Writes</h1>
-        <p>Welcome to Nina M. Writes, your go-to destination for captivating stories and poetry that resonate with the
-            soul.
-            Our mission is to inspire and connect readers through the power of words.</p>
-        <div class="about-image">
-            <img src="{% static 'bookstore/images/about_image.jpg' %}" alt="My Picture">
+<section class="about page-section">
+    <div class="container">
+        <div class="card about-grid">
+            <div class="about-text">
+                <h2>About Nina M. Writes</h2>
+                <p>Welcome to Nina M. Writes, your go-to destination for captivating stories and poetry that resonate with the soul. Our mission is to inspire and connect readers through the power of words.</p>
+
+                <div class="my-story">
+                    <h3>Our Story</h3>
+                    <p>Founded with a passion for storytelling and a desire to share unique narratives that reflect diverse experiences. From poetry to epic tales, we aim to create a literary space that welcomes all readers.</p>
+                </div>
+            </div>
+            <div class="about-image">
+                <img src="{% static 'bookstore/images/home_image.jpg' %}" alt="Nina M. Writes">
+            </div>
         </div>
     </div>
-
-    <div class="my-story">
-        <h2>Our Story</h2>
-        <p>Nina M. Writes was founded with a passion for storytelling and a desire to share unique narratives that
-            reflect diverse experiences. From poetry to epic tales, we aim to create a literary space that welcomes all
-            readers.
-        </p>
-
-    </div>
-
 </section>
 <!-- <section class="team">
         <h2>Meet the Team</h2>
@@ -53,12 +50,14 @@
         </div>
 
     </section> -->
-<section class="call-to-action">
-    <h2>Discover Your Next Great Read </h2>
-    <p>Dive into my books and ignite your imagination</p>
-    <div class="cta-buttons">
-        <button type="button" id="cta-shop">Shop Now</button>
-        <button type="button" id="learn">Learn More</button>
+<section class="call-to-action page-section cta-centered">
+    <div class="container">
+        <h2>Discover Your Next Great Read</h2>
+        <p>Dive into my books and ignite your imagination</p>
+        <div class="cta-buttons">
+            <a href="{% url 'bookstore:books' %}" class="btn btn-primary">Shop Now</a>
+            <a href="{% url 'bookstore:about' %}" class="btn btn-ghost">Learn More</a>
+        </div>
     </div>
 </section>
 {% endblock %}

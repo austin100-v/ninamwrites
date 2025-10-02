@@ -51,7 +51,7 @@
 
                 <!-- Subtotal -->
                 <td class="item-total">
-                    ${{ item.book.price|floatformat:2 }}
+                    ${{ item.total|floatformat:2 }}
                 </td>
 
                 <!-- Remove -->
@@ -94,11 +94,15 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
+        console.log('Cart page loaded, found cart items:', document.querySelectorAll(".cart-item").length);
+        console.log('All cart items:', document.querySelectorAll(".cart-item"));
+        
         function updateCartDisplay(bookId, quantity, newTotal) {
             const item = document.querySelector(`.cart-item[data-book-id="${bookId}"]`);
             if (item) {
                 const price = parseFloat(item.dataset.price);
-                item.querySelector(".item-total").textContent = `Subtotal: $${(price * quantity).toFixed(2)}`;
+                const subtotal = (price * quantity).toFixed(2);
+                item.querySelector(".item-total").textContent = `$${subtotal}`;
             }
             document.getElementById("cart-total").textContent = newTotal.toFixed(2);
         }
@@ -119,6 +123,9 @@
                     } else {
                         alert(data.message);
                     }
+                })
+                .catch(error => {
+                    console.error('Error updating cart:', error);
                 });
         }
 
@@ -128,52 +135,84 @@
             const quantityInput = item.querySelector(".quantity");
             const removeBtn = item.querySelector(".remove");
             const bookId = item.dataset.bookId;
+            
+            console.log('Processing cart item with book ID:', bookId);
+            console.log('Found elements:', { addBtn, minusBtn, quantityInput, removeBtn });
 
-            addBtn.addEventListener("click", function () {
-                let newQty = parseInt(quantityInput.value) + 1;
-                quantityInput.value = newQty;
-                sendQuantityUpdate(bookId, newQty);
-            });
-
-            minusBtn.addEventListener("click", function () {
-                let newQty = parseInt(quantityInput.value);
-                if (newQty > 1) {
-                    newQty -= 1;
+            if (addBtn) {
+                addBtn.addEventListener("click", function () {
+                    console.log('Add button clicked for book ID:', bookId);
+                    let newQty = parseInt(quantityInput.value) + 1;
                     quantityInput.value = newQty;
                     sendQuantityUpdate(bookId, newQty);
-                }
-            });
+                });
+            }
 
-            quantityInput.addEventListener("change", function () {
-                let newQty = parseInt(quantityInput.value);
-                if (isNaN(newQty) || newQty < 1) {
-                    newQty = 1;
-                    quantityInput.value = newQty;
-                }
-                sendQuantityUpdate(bookId, newQty);
-            });
+            if (minusBtn) {
+                minusBtn.addEventListener("click", function () {
+                    console.log('Minus button clicked for book ID:', bookId);
+                    let newQty = parseInt(quantityInput.value);
+                    if (newQty > 1) {
+                        newQty -= 1;
+                        quantityInput.value = newQty;
+                        sendQuantityUpdate(bookId, newQty);
+                    }
+                });
+            }
 
-            removeBtn.addEventListener("click", function () {
-                fetch(`/cart/remove/${bookId}/`, {
-                    method: "POST",
-                    headers: { "X-CSRFToken": getCookie("csrftoken") },
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            item.remove();
-                            if (data.empty) {
-                                document.querySelector(".cart-container").innerHTML = `<p class="empty-message">Your cart is empty.</p>`;
+            if (quantityInput) {
+                quantityInput.addEventListener("change", function () {
+                    let newQty = parseInt(quantityInput.value);
+                    if (isNaN(newQty) || newQty < 1) {
+                        newQty = 1;
+                        quantityInput.value = newQty;
+                    }
+                    sendQuantityUpdate(bookId, newQty);
+                });
+            }
+
+            if (removeBtn) {
+                removeBtn.addEventListener("click", function () {
+                    fetch(`/cart/remove/${bookId}/`, {
+                        method: "POST",
+                        headers: { "X-CSRFToken": getCookie("csrftoken") },
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                item.remove();
+                                if (data.empty) {
+                                    document.querySelector(".cart").innerHTML = `<p class="empty-message">Your cart is empty.</p>`;
+                                } else {
+                                    document.getElementById("cart-total").textContent = data.total.toFixed(2);
+                                }
                             } else {
-                                document.getElementById("cart-total").textContent = data.total.toFixed(2);
+                                alert(data.message);
                             }
-                        } else {
-                            alert(data.message);
-                        }
-                    });
-            });
+                        })
+                        .catch(error => {
+                            console.error('Error removing item:', error);
+                        });
+                });
+            }
 
         });
+
+        // Add checkout button event listener once, outside the loop
+        const checkoutBtn = document.querySelector(".checkout");
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener("click", function () {
+                window.location.href = "/checkout/";
+            });
+        }
+
+        // Add shop button event listener once, outside the loop
+        const shopBtn = document.querySelector(".shop");
+        if (shopBtn) {
+            shopBtn.addEventListener("click", function () {
+                window.location.href = "/books/";
+            });
+        }
     });
 
 </script>

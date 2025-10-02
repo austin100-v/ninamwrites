@@ -220,6 +220,9 @@ def add_to_cart(request):
             cart = request.session.get('cart', {})
             book_id_str = str(book_id)
             
+            print(f"Adding to session cart - book_id: {book_id_str}, quantity: {quantity}")
+            print(f"Current cart before adding: {cart}")
+            
             if book_id_str in cart:
                 cart[book_id_str] += quantity
             else:
@@ -228,6 +231,9 @@ def add_to_cart(request):
             request.session['cart'] = cart
             request.session.modified = True
             cart_count = sum(cart.values())
+            
+            print(f"Cart after adding: {cart}")
+            print(f"Cart count: {cart_count}")
         
         return JsonResponse({
             'success': True,
@@ -259,8 +265,10 @@ def get_cart_count(request):
 
 def cart(request):
     """Display cart page"""
+    from decimal import Decimal
+    
     cart_items = []
-    total_price = 0
+    total_price = Decimal('0.00')
     
     if request.user.is_authenticated:
         try:
@@ -274,16 +282,20 @@ def cart(request):
     else:
         # Session cart
         cart = request.session.get('cart', {})
+        print(f"Session cart: {cart}")
         for book_id, qty in cart.items():
             try:
                 book = Book.objects.get(id=book_id)
+                item_total = book.price * qty
                 cart_items.append({
                     'book': book,
                     'quantity': qty,
-                    'total': book.price * qty
+                    'total': item_total
                 })
-                total_price += book.price * qty
+                total_price += item_total
+                print(f"Added book {book.title} with quantity {qty} to cart items")
             except Book.DoesNotExist:
+                print(f"Book with ID {book_id} not found")
                 pass
     
     return render(request, 'bookstore/cart.html', {
@@ -297,15 +309,45 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def checkout(request):
     """Checkout page view"""
-    # Calculate cart totals (adjust based on your cart logic)
-    cart_items = request.session.get('cart', [])
-    cart_total = sum(item['price'] * item['quantity'] for item in cart_items)
-    cart_tax = cart_total * 0.10  # 10% tax
-    shipping = 5.00
+    from decimal import Decimal
+    
+    cart_items = []
+    cart_total = Decimal('0.00')
+    
+    if request.user.is_authenticated:
+        try:
+            customer = Customer.objects.get(email=request.user.email)
+            cart_obj = Cart.objects.filter(customer=customer).first()
+            if cart_obj:
+                cart_items = cart_obj.items.all()
+                cart_total = cart_obj.total_price
+        except Customer.DoesNotExist:
+            pass
+    else:
+        # Session cart
+        cart = request.session.get('cart', {})
+        for book_id, qty in cart.items():
+            try:
+                book = Book.objects.get(id=book_id)
+                item_total = book.price * qty
+                cart_items.append({
+                    'book': book,
+                    'title': book.title,
+                    'price': book.price,
+                    'quantity': qty,
+                    'total': item_total
+                })
+                cart_total += item_total
+            except Book.DoesNotExist:
+                pass
+    
+    cart_tax = cart_total * Decimal('0.10')  # 10% tax
+    shipping = Decimal('5.00')
     cart_grand_total = cart_total + cart_tax + shipping
     
     context = {
         'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
+        'cart_items': cart_items,
         'cart_total': cart_total,
         'cart_tax': cart_tax,
         'cart_grand_total': cart_grand_total,
@@ -415,7 +457,8 @@ def subscribe(request):
 
 def calculate_cart_total(cart):
     from .models import Book
-    total = 0
+    from decimal import Decimal
+    total = Decimal('0.00')
     for book_id, qty in cart.items():
         try:
             book = Book.objects.get(id=book_id)
@@ -427,13 +470,38 @@ def calculate_cart_total(cart):
 
 def remove_from_cart(request, book_id):
     if request.method == "POST":
+        # Authenticated users: operate on DB-backed cart
+        if request.user.is_authenticated:
+            try:
+                customer = Customer.objects.get(email=request.user.email)
+                cart_obj = Cart.objects.filter(customer=customer).first()
+                if not cart_obj:
+                    return JsonResponse({"success": False, "message": "Cart not found"})
+
+                # Find and delete the specific item
+                cart_item = cart_obj.items.filter(book_id=book_id).first()
+                if not cart_item:
+                    return JsonResponse({"success": False, "message": "Item not in cart"})
+
+                cart_item.delete()
+
+                # Recalculate totals
+                total = cart_obj.total_price if hasattr(cart_obj, "total_price") else sum(
+                    (ci.book.price * ci.quantity) for ci in cart_obj.items.all()
+                )
+                is_empty = (cart_obj.items.count() == 0)
+                return JsonResponse({"success": True, "total": float(total), "empty": is_empty})
+            except Customer.DoesNotExist:
+                return JsonResponse({"success": False, "message": "Customer not found"})
+
+        # Anonymous users: operate on session cart
         cart = request.session.get("cart", {})
         if str(book_id) in cart:
             del cart[str(book_id)]
             request.session["cart"] = cart
             total = calculate_cart_total(cart)
             is_empty = (len(cart) == 0)
-            return JsonResponse({"success": True, "total": total, "empty": is_empty})
+            return JsonResponse({"success": True, "total": float(total), "empty": is_empty})
         return JsonResponse({"success": False, "message": "Item not in cart"})
     return JsonResponse({"success": False, "message": "Invalid request"}, status=400)
 
@@ -448,13 +516,37 @@ def update_cart(request, book_id):
         if quantity < 1:
             return JsonResponse({"success": False, "message": "Quantity must be at least 1"})
 
+        # Authenticated users: update DB-backed cart
+        if request.user.is_authenticated:
+            try:
+                customer = Customer.objects.get(email=request.user.email)
+                cart_obj = Cart.objects.filter(customer=customer).first()
+                if not cart_obj:
+                    return JsonResponse({"success": False, "message": "Cart not found"})
+
+                cart_item = cart_obj.items.filter(book_id=book_id).first()
+                if not cart_item:
+                    return JsonResponse({"success": False, "message": "Book not in cart"})
+
+                cart_item.quantity = quantity
+                cart_item.save()
+
+                total = cart_obj.total_price if hasattr(cart_obj, "total_price") else sum(
+                    (ci.book.price * ci.quantity) for ci in cart_obj.items.all()
+                )
+                is_empty = (cart_obj.items.count() == 0)
+                return JsonResponse({"success": True, "total": float(total), "empty": is_empty})
+            except Customer.DoesNotExist:
+                return JsonResponse({"success": False, "message": "Customer not found"})
+
+        # Anonymous users: update session cart
         cart = request.session.get("cart", {})
         if str(book_id) in cart:
             cart[str(book_id)] = quantity
             request.session["cart"] = cart
             total = calculate_cart_total(cart)
             is_empty = (len(cart) == 0)
-            return JsonResponse({"success": True, "total": total, "empty": is_empty})
+            return JsonResponse({"success": True, "total": float(total), "empty": is_empty})
         else:
             return JsonResponse({"success": False, "message": "Book not in cart"})
 

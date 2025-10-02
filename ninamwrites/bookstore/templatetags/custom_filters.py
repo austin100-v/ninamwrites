@@ -14,3 +14,14 @@ def pluck(queryset_or_list, key):
         return [item.get(key) for item in queryset_or_list]
     except AttributeError:
         return [getattr(item, key, None) for item in queryset_or_list]
+
+@register.filter
+def mul(value, arg):
+    """
+    Multiply value by arg.
+    Example: {{ 5|mul:3 }} -> 15
+    """
+    try:
+        return float(value) * float(arg)
+    except (ValueError, TypeError):
+        return 0
