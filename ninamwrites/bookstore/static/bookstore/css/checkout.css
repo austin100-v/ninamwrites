@@ -11,27 +11,11 @@ header {
   justify-content: center;
   color: white;
   overflow: hidden;
+  background: #9a8174;
 }
 
-header::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: url("{% static 'bookstore/images/header-checkout-bg.jpg' %}") no-repeat center center;
-  background-size: cover;
-  transition: transform 0.5s ease-in-out;
-  z-index: -2;
-}
 
-header::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(154, 129, 116, 0.7);
-  z-index: -1;
-}
-
-header:hover::before {
+header:hover{
   transform: scale(1.05);
 }
 
