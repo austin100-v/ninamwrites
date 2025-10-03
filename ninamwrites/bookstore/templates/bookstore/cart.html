@@ -8,69 +8,79 @@
 {% endblock %}
 
 {% block content %}
-<header>
-    <div class="header-content">
+<header class="page-header">
+    <div class="container">
         <h1>Your Cart</h1>
         <p>Review your selected items before proceeding to checkout.</p>
     </div>
 </header>
-<section class="cart">
-    <h2>Items in Your Cart</h2>
-    {% if cart_items %}
-    <table class="cart-table">
-        <thead>
-            <tr>
-                <th>Book</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Subtotal</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in cart_items %}
-            <tr class="cart-item" data-price="{{ item.book.price }}" data-book-id="{{ item.book.id }}">
 
-                <!-- Book image + title -->
-                <td class="book-details">
-                    <img src="{{ item.book.image.url }}" alt="{{ item.book.title }}" width="50" height="75">
-                    <p>{{ item.book.title }}</p>
-                </td>
-
-                <!-- Price -->
-                <td>${{ item.book.price }}</td>
-
-                <!-- Quantity controls -->
-                <td>
-                    <div class="quantity-specs">
-                        <button type="button" class="minus">-</button>
-                        <input type="number" class="quantity" value="{{ item.quantity }}" min="1">
-                        <button type="button" class="add">+</button>
+<section class="page-section cart-section">
+    <div class="container">
+        {% if cart_items %}
+        <div class="cart-container">
+            <h2>Items in Your Cart</h2>
+            <div class="table-responsive">
+                <table class="cart-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Subtotal</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart_items %}
+                        <tr class="cart-item" data-price="{{ item.book.price }}" data-book-id="{{ item.book.id }}">
+                            <td class="book-details">
+                                <div class="book-info">
+                                    <img src="{{ item.book.image.url }}" alt="{{ item.book.title }}" class="book-image">
+                                    <div class="book-title">
+                                        <h4>{{ item.book.title }}</h4>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="price-cell">${{ item.book.price|floatformat:2 }}</td>
+                            <td class="quantity-cell">
+                                <div class="quantity-controls">
+                                    <button type="button" class="btn-quantity minus" aria-label="Decrease quantity">-</button>
+                                    <input type="number" class="quantity-input" value="{{ item.quantity }}" min="1" max="99">
+                                    <button type="button" class="btn-quantity add" aria-label="Increase quantity">+</button>
+                                </div>
+                            </td>
+                            <td class="subtotal-cell">
+                                <span class="item-total">${{ item.total|floatformat:2 }}</span>
+                            </td>
+                            <td class="actions-cell">
+                                <button type="button" class="btn-remove" aria-label="Remove item">Remove</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="cart-summary">
+                <div class="summary-content">
+                    <div class="total-row">
+                        <span class="total-label">Total:</span>
+                        <span class="total-amount">$<span id="cart-total">{{ total_price|floatformat:2 }}</span></span>
                     </div>
-                </td>
-
-                <!-- Subtotal -->
-                <td class="item-total">
-                    ${{ item.total|floatformat:2 }}
-                </td>
-
-                <!-- Remove -->
-                <td>
-                    <button type="submit" class="remove">Remove</button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>Your cart is empty. Start shopping!</p>
-    <button type="button" class="shop">Shop</button>
-    {% endif %}
-
-    <!-- Cart Summary -->
-    <div class="cart-summary">
-        <h3>Total: $<span id="cart-total">{{ total_price }}</span></h3>
-        <button class="checkout" type="button">Proceed to Checkout</button>
+                    <button class="btn btn-primary btn-checkout" type="button">Proceed to Checkout</button>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-cart">
+            <div class="empty-cart-content">
+                <h2>Your cart is empty</h2>
+                <p>Looks like you haven't added any items to your cart yet.</p>
+                <a href="{% url 'bookstore:books' %}" class="btn btn-primary">Start Shopping</a>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </section>
 
@@ -132,8 +142,8 @@
         document.querySelectorAll(".cart-item").forEach(item => {
             const addBtn = item.querySelector(".add");
             const minusBtn = item.querySelector(".minus");
-            const quantityInput = item.querySelector(".quantity");
-            const removeBtn = item.querySelector(".remove");
+            const quantityInput = item.querySelector(".quantity-input");
+            const removeBtn = item.querySelector(".btn-remove");
             const bookId = item.dataset.bookId;
             
             console.log('Processing cart item with book ID:', bookId);
@@ -199,18 +209,10 @@
         });
 
         // Add checkout button event listener once, outside the loop
-        const checkoutBtn = document.querySelector(".checkout");
+        const checkoutBtn = document.querySelector(".btn-checkout");
         if (checkoutBtn) {
             checkoutBtn.addEventListener("click", function () {
                 window.location.href = "/checkout/";
-            });
-        }
-
-        // Add shop button event listener once, outside the loop
-        const shopBtn = document.querySelector(".shop");
-        if (shopBtn) {
-            shopBtn.addEventListener("click", function () {
-                window.location.href = "/books/";
             });
         }
     });
