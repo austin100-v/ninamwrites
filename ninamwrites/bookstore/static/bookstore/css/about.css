@@ -39,6 +39,8 @@ header:hover::before {
     display: flex;
     text-align: center;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 .header-content h1 {
     font-size: 2.5em;
@@ -137,6 +139,8 @@ header:hover::before {
 @media (max-width: 600px) {
     .header-content {
         flex-direction: column;
+        align-items: center;
+        justify-content: start;
     }
     .header-content h1 {
         font-size: 1.8rem;

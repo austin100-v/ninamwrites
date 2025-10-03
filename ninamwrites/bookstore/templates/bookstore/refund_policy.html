@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Refund Policy{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'bookstore/css/refund_policy.css' %}">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+{% endblock %}
+
+{% block content %}
+<header>
+    <div class="header-content">
+        <h1>Refund Policy</h1>
+        <p>Our refund policy is simple and straightforward.</p>
+    </div>
+</header>
+<section class="refund-policy">
+    <div class="container">
+        <h2>Refund Policy</h2>
+        <p>We offer a 100% refund if you are not satisfied with your purchase. Please contact us within 30 days of purchase to request a refund.</p>
+        <h2>Refund Process</h2>
+        <p>To request a refund, please contact us at <a href="mailto:info@ninawrites.com">info@ninawrites.com</a>. We will process your refund within 30 days of receiving your request.</p>
+        <h2>Refund Conditions</h2>
+        <p>Refunds are only available for books that are returned in the same condition as they were received. Books must be returned in the original packaging and must be in the same condition as they were received.</p>
+        <h2>Refund Policy Changes</h2>
+        <p>We reserve the right to change this refund policy at any time. We will notify you of any changes to this refund policy by posting the changes on this page.</p>
+        <h2>Contact Us</h2>
+        <p>If you have any questions about our refund policy, please contact us at <a href="mailto:info@ninawrites.com">info@ninawrites.com</a>.</p>
+    </div>
+</section>
+{% endblock %}

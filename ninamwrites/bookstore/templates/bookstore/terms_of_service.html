@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Terms of Service{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'bookstore/css/terms_of_service.css' %}">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+{% endblock %}
+
+{% block content %}
+<header>
+    <div class="header-content">
+        <h1>Terms of Service</h1>
+        <p>Our terms of service are simple and straightforward.</p>
+    </div>
+</header>
+<section class="terms-of-service">
+    <div class="container">
+        <h2>Terms of Service</h2>
+        <p>We offer a 100% refund if you are not satisfied with your purchase. Please contact us within 30 days of purchase to request a refund.</p>
+    </div>
+</section>
+{% endblock %}

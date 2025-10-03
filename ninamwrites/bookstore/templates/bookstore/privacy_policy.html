@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Privacy Policy{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'bookstore/css/privacy_policy.css' %}">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+{% endblock %}
+
+{% block content %}
+<header>
+    <div class="header-content">
+        <h1>Privacy Policy</h1>
+        <p>Your privacy is important to us.</p>
+    </div>
+</header>
+<section class="privacy-policy">
+    <div class="container">
+        <h2>Information We Collect</h2>
+        <p>We collect information from you when you register on our site, place an order, subscribe to our newsletter, respond to a survey or fill out a form.</p>
+        
+        <h2>How We Use Your Information</h2>
+        <p>We may use the information we collect from you when you register, make a purchase, sign up for our newsletter, respond to a survey or marketing communication, surf the website, or use certain other site features in the following ways:</p>
+        
+        <h2>How We Protect Your Information</h2>
+        <p>We implement a variety of security measures to maintain the safety of your personal information when you place an order or enter, submit, or access your personal information.</p>
+        
+        <h2>Sharing Your Personal Information</h2>
+        <p>We do not sell, trade, or otherwise transfer to outside parties your personally identifiable information. This does not include trusted third parties who assist us in operating our website, conducting our business, or servicing you, so long as those parties agree to keep this information confidential.</p>
+        
+        <h2>Your Rights</h2>
+        <p>If you have any questions about our privacy policy, please contact us.</p>
+    </div>
+</section>
+{% endblock %}

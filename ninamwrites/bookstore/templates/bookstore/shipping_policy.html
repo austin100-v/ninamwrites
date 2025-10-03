@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Shipping Policy{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'bookstore/css/shipping_policy.css' %}">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap">
+{% endblock %}
+
+{% block content %}
+<header>
+    <div class="header-content">
+        <h1>Shipping Policy</h1>
+        <p>Our shipping policy is simple and straightforward.</p>
+    </div>
+</header>
+<section class="shipping-policy">
+    <div class="container">
+        <h2>Shipping Policy</h2>
+        <p>We offer free shipping on all orders over $100. We also offer expedited shipping options for an additional fee.</p>
+    </div>
+</section>
+{% endblock %}
